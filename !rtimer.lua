@@ -1,5 +1,5 @@
 script_name("rtimer")
-script_version("0.3")
+script_version("0.4")
 script_author("rubbishman")
 script_description("/rtimer")
 color = 0x348cb2
@@ -929,20 +929,30 @@ function getmoney()
 	end
 end
 function min20()
-	wait(1200000)
-	stopugon = nil
+	while true do
+		wait(0)
+		while Enablemin20 do
+			wait(1200000)
+			if Enablemin20 == true then stopugon = nil end
+			Enablemin20 = false
+		end
+	end
+end
+function test1()
+sampAddChatMessage(" Подобную тачку наши парни недавно видели. Я обозначил район на твоей карте.")
 end
 function ugon()
 	lua_thread.create(ugonscanner)
 	triggermoney = true
 	lua_thread.create(getmoney)
+	lua_thread.create(min20)
 	while true do
 		wait(0)
 		if settings.ugon.isactive == 1 then
 			if chatscanner99 == " Подобную тачку наши парни недавно видели. Я обозначил район на твоей карте." and colorscanner97 == -9784833 and stopugon == nil then
 				settings.ugon.allcount = settings.ugon.allcount + 1
 				stopugon = 1
-				min20 = lua_thread.create(min20)
+				Enablemin20 = true
 				sampAddChatMessage("[RTIMER]: Зафиксировано "..settings.ugon.allcount.."-е взятие угона! Удачных: "..settings.ugon.count.."/"..settings.ugon.allcount.."! Всего заработано: "..settings.ugon.money.." вирт!", color)
 				inicfg.save(settings, "rtimer\\settings")
 			end
@@ -953,6 +963,7 @@ function ugon()
 				settings.ugon.count = settings.ugon.count + 1
 				intim.ugon.notif = 0
 				stopugon = nil
+				Enablemin20 = false
 				wait(1000)
 				settings.ugon.money = settings.ugon.money + getPlayerMoney() - money
 				sampAddChatMessage("[RTIMER]: Зафиксирован "..settings.ugon.count.."-й удачный угон! Всего заработано: "..settings.ugon.money.." вирт!", color)
@@ -1199,7 +1210,7 @@ function cmdScriptInfo()
 	sampShowDialog(2342, "{348cb2}RTIMER v"..thisScript().version..". Автор: James_Bond/rubbishman/Coulson.", "{ffcc00}Зачем этот скрипт?\n{ffffff}Скрипт создавался для удобного отсчета времени там, где это нужно в SA:MP.\nВ скрипте использованы разработки FYP'a и makaron'a, за которые им ~ спасибо.\nТаймер задротства можно использовать где угодно, остальное - только на Samp-Rp.\n\n{ffcc00}Таймер угона.\n{ffffff}Представляет собой удобную штуку для угонщиков samp-rp.\nСоздаёт textdraw с обратным отсчетом до следующего угона.\nОтслеживает количество удачных и не очень угонов, а так же заработанные бабки.\nСтатистику угона можно посмотреть в {00ccff}/rtimer{ffffff}.\nВ настройках можно изменить шрифт textdraw'a, его размер и положение, поменять\nзадержку, выключить гудок и вовсе отключить функцию.\nКогда время истечёт, в чате будет уведомление и звук гудка, а textdraw поменяет цвет.\n\n{ffcc00}Таймер нарко.\n{ffffff}Представляет собой доработанный и переписанный на Lua Drugs Master makaron'a.\nПо нажатию хоткея ({00ccff}X{ffffff} по умолчанию) скрипт автоматически юзнет нужное количество наркотиков.\nПосле нажатия запустится таймер до следующего употребления (/usedrugs).\nДержите хоткей ({00ccff}X{ffffff} по умолчанию), чтобы заюзать 1 грамм (помогает от ломки).\nВ автоматическом режиме скрипт отслеживает оставшееся количество нарко.\nВ настройках можно изменить хоткей, шрифт textdraw'ов, их размер и положение,\nпоменять задержку, изменить стиль \"Drugs\", выключить звук и вовсе отключить функцию.\n\n{ffcc00}Таймер задротства.\n{ffffff}Функция считает время вашей игры за день (обнуляется при изменении даты).\nЕсть возможность установить лимит, как у родительского контроля.\nПри достижении лимита на экране появится textdraw.\nВведите {00ccff}/rtime{ffffff}, чтобы узнать сколько вы наиграли, текущий лимит и остаток.\nВведите {00ccff}/rtime 0{ffffff}, чтобы удалить лимит в принципе.\nВведите {00ccff}/rtime [ЧЧ:ММ]{ffffff}, чтобы установить новый лимит в часах и минутах.\n\n{ffcc00}Доступные команды:\n    {00ccff}/rtimer {ffffff}- главное меню скрипта.\n    {00ccff}/rtime {ffffff}- таймер задротства.\n    {00ccff}/rtimerlog {ffffff}- changelog скрипта.\n{00ccff}    /rtimernot{ffffff} - включить/выключить сообщение при входе в игру.", "Лады")
 end
 function changelog()
-	sampShowDialog(2342, "{348cb2}RTIMER: История версий.", "{ffcc00}v0.3 [23.11.17]\n{ffffff}Исправлен баг, при котором последнее время угона могло не сохранятся.\n{ffcc00}v0.2 [18.11.17]\n{ffffff}Исправлены все известные баги, добавлены новые.\nСкрипт тестируется в узком кругу людей.\n{ffcc00}v0.1 [16.11.17]\n{ffffff}Заложен фундамент для дальнейшей разработки.\n{ffffff}Написан таймер угона с функцией отслеживания статистики.\n{ffffff}Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.\n{ffffff}Написан таймер задротства.", "Закрыть")
+	sampShowDialog(2342, "{348cb2}RTIMER: История версий.", "{ffcc00}v0.4 [27.11.17]\n{ffffff}Исправлен вылет скрипта при втором взятии миссии угона за один сеанс.\nСкрипт опубликован на rubbishman.ru/samp\n{ffcc00}v0.3 [23.11.17]\n{ffffff}Исправлен баг, при котором последнее время угона могло не сохранятся.\n{ffcc00}v0.2 [18.11.17]\n{ffffff}Исправлены все известные баги, добавлены новые.\nСкрипт тестируется в узком кругу людей.\n{ffcc00}v0.1 [16.11.17]\n{ffffff}Заложен фундамент для дальнейшей разработки.\n{ffffff}Написан таймер угона с функцией отслеживания статистики.\n{ffffff}Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.\n{ffffff}Написан таймер задротства.", "Закрыть")
 end
 --------------------------------------------------------------------------------
 -------------------------------------М Е Н Ю------------------------------------
