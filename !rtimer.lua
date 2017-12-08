@@ -1,7 +1,12 @@
+--Больше скриптов от автора можно найти на сайте: http://www.rubbishman.ru/samp
+--------------------------------------------------------------------------------
+-------------------------------------META---------------------------------------
+--------------------------------------------------------------------------------
 script_name("rtimer")
-script_version("0.4")
+script_version("1.02")
 script_author("rubbishman")
 script_description("/rtimer")
+--------------------------------------VAR---------------------------------------
 color = 0x348cb2
 local inicfg = require 'inicfg'
 local dlstatus = require('moonloader').download_status
@@ -9,6 +14,7 @@ local settings = inicfg.load({
 	options =
 	{
 		startmessage = 1,
+		autoupdate = 1,
 	},
 	ugon =
 	{
@@ -63,19 +69,29 @@ local settings = inicfg.load({
 		style1 = 3,
 		text = "Limit"
 	},
+	dalnoboy =
+	{
+		render = true,
+		dmoney = 0,
+	},
 }, 'rtimer\\settings.ini')
 --------------------------------------------------------------------------------
 ------------------------------ГЛАВНОЕ МЕНЮ СКРИПТА------------------------------
 --------------------------------------------------------------------------------
 function main()
+	font = renderCreateFont("Arial", 16, 5) -- для изменения размера и шрифта рендера дальнобоя
 	while not isSampAvailable() do wait(10) end
-	checkversion()
-	wait(1000)
+	if settings.options.autoupdate == 1 then
+		update()
+		while update ~= false do wait(100) end
+	end
 	firstload()
 	onload()
 	ugon = lua_thread.create(ugon)
 	usedrugs = lua_thread.create(usedrugs)
 	zadrottimer = lua_thread.create(zadrottimer)
+	dmoney = 0
+	dalnoboy = lua_thread.create(dalnoboy)
 	while true do
 		wait(0)
 		if menutrigger ~= nil then menu() menutrigger = nil end
@@ -105,7 +121,7 @@ function zadrottimer()
 	end
 	while true do
 		wait(0)
-		if os.date("%x") ~= settings.zadrottimer.date then
+		if os.date("%x") ~= settings.zadrottimer.date and tonumber(os.date("%H")) > 4 then
 			settings.zadrottimer.date = os.date("%x")
 			settings.zadrottimer.time = 0
 			saveini(1);
@@ -153,7 +169,8 @@ function rtime(limit)
 			activeminutelimiter = math.floor(limiter / 60)
 			activeseclimiter = limiter % 60
 		end
-		sampShowDialog(987, "Изменение лимита", string.format("Текущий лимит: "..activehourlimiter.." ч. "..activeminutelimiter.." м. "..activeseclimiter.." с.\nЕсли вы хотите удалить лимит, введите '0'\nЕсли вы хотите установить новый лимит, введите время в формате 'ЧЧ:ММ'"), "Выбрать", "Закрыть", 1)
+
+		sampShowDialog(987, "Изменение лимита", string.format("Текущий лимит: "..tostring(activehourlimiter).." ч. "..tostring(activeminutelimiter).." м. "..tostring(activeseclimiter).." с.\nЕсли вы хотите удалить лимит, введите '0'\nЕсли вы хотите установить новый лимит, введите время в формате 'ЧЧ:ММ'"), "Выбрать", "Закрыть", 1)
 		while sampIsDialogActive(987) do wait(100) end
 		local resultMain, buttonMain, typ = sampHasDialogRespond(987)
 		if buttonMain == 1 then
@@ -476,7 +493,7 @@ function usedrugskolvo()
 		chat98, prefix, color1345, pcolor = sampGetChatString(98)
 		if not string.find(chat98, " Вы купили ", 1, true) and not string.find(chat98, " грамм за ", 1, true) then trigger1 = true end
 		if not string.find(chat98, " купил(а) у вас ", 1, true) and not string.find(chat98, " грамм ", 1, true) then trigger2 = true end
-		if ((string.find(chat98, "(( Остаток:", 1, true) and color1345 == -1) and not string.find(chat98, "материалов", 1, true) and color1345 == -1) or chat98 == " Вы украли 150 грамм наркотических лекарств" or (string.find(chat98, " Вы купили ", 1, true) and not string.find(chat98, "У вас есть", 1, true) and string.find(chat98, " грамм за ", 1, true) and color1345 == -9784833 and trigger1 == true) or (string.find(chat98, " купил(а) у вас ", 1, true) and string.find(chat98, " грамм ", 1, true) and color1345 == -9784833 and trigger2 == true) then
+		if ((string.find(chat98, "(( Остаток:", 1, true) and color1345 == -1) and not string.find(chat98, "материалов", 1, true) and color1345 == -1) or chat99 == " Вы украли 150 грамм наркотических лекарств" or (string.find(chat98, " Вы купили ", 1, true) and not string.find(chat98, "У вас есть", 1, true) and string.find(chat98, " грамм за ", 1, true) and color1345 == -9784833 and trigger1 == true) or (string.find(chat98, " купил(а) у вас ", 1, true) and string.find(chat98, " грамм ", 1, true) and color1345 == -9784833 and trigger2 == true) then
 			if string.match(chat98, "(%d+)") ~= nil then
 				if string.find(chat98, " Вы купили ", 1, true) then intim.usedrugs.kolvo = intim.usedrugs.kolvo + string.match(chat98, "(%d+)") trigger1 = false
 				elseif string.match(chat98, "(%d+)") ~= intim.usedrugs.kolvo and not string.find(chat98, " купил(а) у вас ", 1, true) then intim.usedrugs.kolvo = string.match(chat98, "(%d+)") end
@@ -696,8 +713,6 @@ function cmdChangeDrugsPos(param)
 					addOneOffSound(0.0, 0.0, 0.0, 1053)
 					usedrugs:terminate()
 
-
-
 					if narkotrigger == false then
 						usedrugs:run()
 						wait(100)
@@ -718,8 +733,6 @@ function cmdChangeDrugsPos(param)
 		addOneOffSound(0.0, 0.0, 0.0, 1052)
 		saveini(1)
 		usedrugs:terminate()
-
-
 
 		if narkotrigger == false then
 			usedrugs:run()
@@ -757,7 +770,6 @@ function cmdChangeDrugsTimerPos(param)
 						bckpS1 = bckpS1 + 0.1
 					end
 				end
-
 				if isKeyJustPressed(55) then
 					if bckpS2 - 0.1 > 0 then
 						bckpS2 = bckpS2 - 0.1
@@ -778,7 +790,6 @@ function cmdChangeDrugsTimerPos(param)
 						bckpS1 = bckpS1 + 0.1
 					end
 				end
-
 				if isKeyJustPressed(55) then
 					if bckpS2 - 0.1 > 0 then
 						bckpS2 = bckpS2 - 0.1
@@ -817,9 +828,6 @@ function cmdChangeDrugsTimerPos(param)
 					addOneOffSound(0.0, 0.0, 0.0, 1052)
 					saveini(1)
 					usedrugs:terminate()
-
-
-
 					if narkotrigger == false then
 						usedrugs:run()
 						wait(100)
@@ -833,9 +841,6 @@ function cmdChangeDrugsTimerPos(param)
 					sampTextdrawDelete(422)
 					addOneOffSound(0.0, 0.0, 0.0, 1053)
 					usedrugs:terminate()
-
-
-
 					if narkotrigger == false then
 						usedrugs:run()
 						wait(100)
@@ -857,8 +862,6 @@ function cmdChangeDrugsTimerPos(param)
 		addOneOffSound(0.0, 0.0, 0.0, 1052)
 		saveini(1)
 		usedrugs:terminate()
-
-
 
 		if narkotrigger == false then
 			usedrugs:run()
@@ -939,7 +942,7 @@ function min20()
 	end
 end
 function test1()
-sampAddChatMessage(" Подобную тачку наши парни недавно видели. Я обозначил район на твоей карте.")
+	sampAddChatMessage(" Подобную тачку наши парни недавно видели. Я обозначил район на твоей карте.")
 end
 function ugon()
 	lua_thread.create(ugonscanner)
@@ -1047,7 +1050,6 @@ function cmdChangeUgonTimerPos(param)
 						bckpS1 = bckpS1 + 0.1
 					end
 				end
-
 				if isKeyJustPressed(55) then
 					if bckpS2 - 0.1 > 0 then
 						bckpS2 = bckpS2 - 0.1
@@ -1070,7 +1072,6 @@ function cmdChangeUgonTimerPos(param)
 						bckpS2 = bckpS1 * 4
 					end
 				end
-
 				if isKeyJustPressed(13) then
 					settings.ugon.posX1 = bckpX1
 					settings.ugon.posY1 = bckpY1
@@ -1134,6 +1135,185 @@ function cmdChangeUgonActive()
 	if settings.ugon.isactive == 1 then settings.ugon.isactive = 0 sampAddChatMessage('[RTIMER]: Таймер угона деактивирован.', color) ugon:terminate() sampTextdrawDelete(422) sampTextdrawDelete(419) else settings.ugon.isactive = 1 sampAddChatMessage('[RTIMER]: Таймер угона активирован.', color) ugon:run()
 	end
 	saveini(1)
+end
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------ТАЙМЕР ДАЛЬНОБОЯ--------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function dalnoboy()
+	resX, resY = getScreenResolution()
+	render = lua_thread.create(render)
+	binder = lua_thread.create(binderd)
+	dmonitorwikk = lua_thread.create(dmonitorwik)
+	timerd = lua_thread.create_suspended(timer23)
+	timerd:terminate()
+	dmon = lua_thread.create_suspended(dmoncount)
+	dmon:terminate()
+	dtime = "монито"
+	dmonitortext = "ринг"
+	while true do
+		wait(0)
+		local text1, prefix, color2, pcolor = sampGetChatString(98)
+		local text, prefix, color3, pcolor = sampGetChatString(99)
+		if string.find(text, " Загружено (%d+) груза, на сумму (%d+) вирт. Скидка: (%d+) вирт") and color3 == -11469162 then
+			print(color3)
+			Enable = true
+			tempB = text
+			timerd:run()
+			sampAddChatMessage("[RTIMER]: Обратный отсчёт запущен. Значение заработка изменено.", color)
+			if dmoney == nil then dmoney = 0 end
+			dmoney = dmoney - tonumber( string.match(tempB, "(%d+)", string.find(tempB, " груза, на сумму")))
+			settings.dalnoboy.dmoney = settings.dalnoboy.dmoney - tonumber( string.match(tempB, "(%d+)", string.find(tempB, " груза, на сумму")))
+			inicfg.save(settings, "rtimer\\settings")
+		end
+		if string.find(text, " Вы заработали (%d+) вирт, из которых (%d+) вирт будет добавлено к вашей зарплате") and color3 == -1 then
+			Enable = true
+			print(color3)
+			tempS = text
+			timerd:run()
+			sampAddChatMessage("[RTIMER]: Обратный отсчёт запущен. Значение заработка изменено.", color)
+			if dmoney == nil then dmoney = 0 end
+			if dmoney == nil then dmoney = 0 end
+			dmoney = dmoney + tonumber( string.match(tempS, "(%d+)", string.find(tempS, " Вы заработали ")))
+			settings.dalnoboy.dmoney = settings.dalnoboy.dmoney + tonumber( string.match(tempS, "(%d+)", string.find(tempS, " Вы заработали ")))
+			inicfg.save(settings, "rtimer\\settings")
+		end
+		if chatscanner == " (( Команды: /truck ))" and text == " Вы арендовали транспортное средство" then
+			local text2, prefix, color4324, pcolor = sampGetChatString(95)
+			if string.find(text2, " Нефть: ") or string.find(text2, " Уголь: ") or string.find(text2, " Дерево: ") then
+				maxgruz = tonumber( string.match(text2, "(%d+)", string.find(text2, " / ")))
+			else
+				local text2, prefix, color4324, pcolor = sampGetChatString(92)
+				if string.find(text2, " Нефть: ") or string.find(text2, " Уголь: ") or string.find(text2, " Дерево: ") then
+					maxgruz = tonumber( string.match(text2, "(%d+)", string.find(text2, " / ")))
+				else
+					local text2, prefix, color4324, pcolor = sampGetChatString(90)
+					if string.find(text2, " Нефть: ") or string.find(text2, " Уголь: ") or string.find(text2, " Дерево: ") then
+						maxgruz = tonumber( string.match(text2, "(%d+)", string.find(text2, " / ")))
+					else
+						local text2, prefix, color4324, pcolor = sampGetChatString(88)
+						if string.find(text2, " Нефть: ") or string.find(text2, " Уголь: ") or string.find(text2, " Дерево: ") then
+							maxgruz = tonumber( string.match(text2, "(%d+)", string.find(text2, " / ")))
+						end
+					end
+				end
+			end
+			if dmoney == nil then dmoney = 0 end
+			sampAddChatMessage("[RTIMER]: Зафиксировал аренду фуры. Значение заработка изменено. Gmax: "..tostring(maxgruz)..".", color)
+			Enable = true
+			dmoney = dmoney + getPlayerMoney() - money
+			settings.dalnoboy.dmoney = settings.dalnoboy.dmoney + getPlayerMoney() - money
+			inicfg.save(settings, "rtimer\\settings")
+		end
+	end
+end
+function binderd()
+	while true do
+		wait(0)
+		if sampIsDialogActive() and sampGetCurrentDialogId() == 22 and sampGetDialogCaption() == "Дальнобойщик" then
+			local stopper = 0
+			while sampIsDialogActive(22) == false and stopper < 100 do wait(100) stopper = stopper + 1 end
+			if sampIsDialogActive() then
+				while sampIsDialogActive() do
+					wait(0)
+					if isKeyDown(49) or isKeyDown(50) or isKeyDown(51) or isKeyDown(52) or isKeyDown(48) then
+						if isKeyDown(48) then
+							sampSendDialogResponse(22, 1, 0, - 1)
+							local stopper = 0
+							while sampGetDialogCaption() ~= "Ввод параметра" do wait(10) stopper = stopper + 1 end
+							if maxgruz ~= nil then
+								wait(200)
+								sampSetCurrentDialogEditboxText(maxgruz)
+								sampCloseCurrentDialogWithButton(1)
+							end
+						end
+						if isKeyDown(49) then
+							sampSendDialogResponse(22, 1, 1, - 1)
+							wait(1000)
+						end
+						if isKeyDown(50) then
+							sampSendDialogResponse(22, 1, 2, - 1)
+							wait(1000)
+						end
+						if isKeyDown(51) then
+							sampSendDialogResponse(22, 1, 3, - 1)
+							wait(1000)
+						end
+						if isKeyDown(52) then
+							sampSendDialogResponse(22, 1, 4, - 1)
+							wait(1000)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+function dmonitorwik()
+	while true do
+		wait(0)
+		if sampGetDialogCaption() == "Сообщение" and sampIsDialogActive() and string.find(sampGetDialogText(), "Заводы") and string.find(sampGetDialogText(), "Порты") then
+			dmonitor(sampGetDialogText())
+			dmon:terminate()
+			dmon:run()
+			while sampIsDialogActive() do wait(100) end
+		end
+	end
+end
+function dmonitor(dialogdal)
+	index = 1
+	Enable = true
+	dcena = {}
+	for i = 1, 12 do
+		dcena[i] = string.match(dialogdal, "(%d+)", (string.find(dialogdal, "0.", index) + 1))
+		index = string.find(dialogdal, "вирт", index) + 1
+	end
+	dmonitortext = "\n[Заводы]\nН1: "..dcena[1]..". Н2: "..dcena[2]..".\nУ1: "..dcena[3]..". У2: "..dcena[4]..".\nД1: "..dcena[5]..". Д2: "..dcena[6]..".\n[Порты]\nНЛС: "..dcena[7]..". НСФ: "..dcena[10]..".\nУЛС: "..dcena[8]..". УСФ: "..dcena[11]..".\nДЛС: "..dcena[9]..". ДСФ: "..dcena[12].."."
+end
+function dmoncount()
+	dialogdaltimer = 0
+	while true do
+		wait(0)
+		if dialogdaltimer > 3600 then
+			dhour = math.floor(dialogdaltimer / 3600)
+			dialogdaltimer = dialogdaltimer % 3600
+			dminute = math.floor(dialogdaltimer / 60)
+			dsec = dialogdaltimer % 60
+		else
+			dhour = 0
+			dminute = math.floor(dialogdaltimer / 60)
+			dsec = dialogdaltimer % 60
+		end
+		dtime = dhour..":"..dminute..":"..dsec
+		dialogdaltimer = dialogdaltimer + 1
+		wait(1000)
+	end
+end
+function timer23()
+	timer2 = 179
+	while timer2 > 0 do
+		wait(1000)
+		timer2 = timer2 - 1
+	end
+	addOneOffSound(0.0, 0.0, 0.0, 1139)
+end
+--------------------------------------------------------------------------------
+-------------------------------------RENDER-------------------------------------
+-------------------ц -------------------------------------------------------------
+function render()
+	timer2 = 0
+	while true do
+		wait(0)
+		while Enable == true and settings.dalnoboy.render == true do
+			wait(0)
+			renderFontDrawText(font, "rtimer by rubbishman\n\nОсталось: "..tostring(timer2).." с.\nЗаработок: "..tostring(dmoney).." вирт.\n\n"..tostring(dtime)..tostring(dmonitortext), resX / 50, resY / 3.5, 0xFF00FF00)
+		end
+	end
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1207,10 +1387,10 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function cmdScriptInfo()
-	sampShowDialog(2342, "{348cb2}RTIMER v"..thisScript().version..". Автор: James_Bond/rubbishman/Coulson.", "{ffcc00}Зачем этот скрипт?\n{ffffff}Скрипт создавался для удобного отсчета времени там, где это нужно в SA:MP.\nВ скрипте использованы разработки FYP'a и makaron'a, за которые им ~ спасибо.\nТаймер задротства можно использовать где угодно, остальное - только на Samp-Rp.\n\n{ffcc00}Таймер угона.\n{ffffff}Представляет собой удобную штуку для угонщиков samp-rp.\nСоздаёт textdraw с обратным отсчетом до следующего угона.\nОтслеживает количество удачных и не очень угонов, а так же заработанные бабки.\nСтатистику угона можно посмотреть в {00ccff}/rtimer{ffffff}.\nВ настройках можно изменить шрифт textdraw'a, его размер и положение, поменять\nзадержку, выключить гудок и вовсе отключить функцию.\nКогда время истечёт, в чате будет уведомление и звук гудка, а textdraw поменяет цвет.\n\n{ffcc00}Таймер нарко.\n{ffffff}Представляет собой доработанный и переписанный на Lua Drugs Master makaron'a.\nПо нажатию хоткея ({00ccff}X{ffffff} по умолчанию) скрипт автоматически юзнет нужное количество наркотиков.\nПосле нажатия запустится таймер до следующего употребления (/usedrugs).\nДержите хоткей ({00ccff}X{ffffff} по умолчанию), чтобы заюзать 1 грамм (помогает от ломки).\nВ автоматическом режиме скрипт отслеживает оставшееся количество нарко.\nВ настройках можно изменить хоткей, шрифт textdraw'ов, их размер и положение,\nпоменять задержку, изменить стиль \"Drugs\", выключить звук и вовсе отключить функцию.\n\n{ffcc00}Таймер задротства.\n{ffffff}Функция считает время вашей игры за день (обнуляется при изменении даты).\nЕсть возможность установить лимит, как у родительского контроля.\nПри достижении лимита на экране появится textdraw.\nВведите {00ccff}/rtime{ffffff}, чтобы узнать сколько вы наиграли, текущий лимит и остаток.\nВведите {00ccff}/rtime 0{ffffff}, чтобы удалить лимит в принципе.\nВведите {00ccff}/rtime [ЧЧ:ММ]{ffffff}, чтобы установить новый лимит в часах и минутах.\n\n{ffcc00}Доступные команды:\n    {00ccff}/rtimer {ffffff}- главное меню скрипта.\n    {00ccff}/rtime {ffffff}- таймер задротства.\n    {00ccff}/rtimerlog {ffffff}- changelog скрипта.\n{00ccff}    /rtimernot{ffffff} - включить/выключить сообщение при входе в игру.", "Лады")
+	sampShowDialog(2342, "{348cb2}RTIMER v"..thisScript().version..". Автор: James_Bond/rubbishman/Coulson.", "{ffcc00}Зачем этот скрипт?\n{ffffff}Скрипт создавался для удобного отсчета времени там, где это нужно в SA:MP.\nВ скрипте использованы разработки FYP'a и makaron'a, за которые им ~ спасибо.\nТаймер задротства можно использовать где угодно, остальное - только на Samp-Rp.\n\n{ffcc00}Таймер угона (Samp-Rp).\n{ffffff}Представляет собой удобную штуку для угонщиков samp-rp.\nСоздаёт textdraw с обратным отсчетом до следующего угона.\nОтслеживает количество удачных и не очень угонов, а так же заработанные бабки.\nСтатистику угона можно посмотреть в {00ccff}/rtimer{ffffff}.\nВ настройках можно изменить шрифт textdraw'a, его размер и положение, поменять\nзадержку, выключить гудок и вовсе отключить функцию.\nКогда время истечёт, в чате будет уведомление и звук гудка, а textdraw поменяет цвет.\n\n{ffcc00}Таймер нарко (Samp-Rp).\n{ffffff}Представляет собой доработанный и переписанный на Lua Drugs Master makaron'a.\nПо нажатию хоткея ({00ccff}X{ffffff} по умолчанию) скрипт автоматически юзнет нужное количество наркотиков.\nПосле нажатия запустится таймер до следующего употребления (/usedrugs).\nДержите хоткей ({00ccff}X{ffffff} по умолчанию), чтобы заюзать 1 грамм (помогает от ломки).\nВ автоматическом режиме скрипт отслеживает оставшееся количество нарко.\nВ настройках можно изменить хоткей, шрифт textdraw'ов, их размер и положение,\nпоменять задержку, изменить стиль \"Drugs\", выключить звук и вовсе отключить функцию.\n\n{ffcc00}Таймер дальнобойщика (Samp-Rp).\n{ffffff}Функция отслеживает на сколько вы вышли в плюс (аренда фуры, покупка груза, продажа груза),\nотсчитывает тайминг сдачи (3 минуты), а так же сохраняет в рендере последний просмотр мониторинга.\nДобавляет хоткеи в /truck. Открываешь диалог и нажимаешь [0] - [4]. \nСамое полезное - это [0] (быстро покупает максимум груза).\nРендер активируется при аренде фуры, но его можно отключить в настройках.\n\n{ffcc00}Таймер задротства.\n{ffffff}Функция считает время вашей игры за день (обнуляется при изменении даты в 05:00).\nЕсть возможность установить лимит, как у родительского контроля.\nПри достижении лимита на экране появится textdraw.\nВведите {00ccff}/rtime{ffffff}, чтобы узнать сколько вы наиграли, текущий лимит и остаток.\nВведите {00ccff}/rtime 0{ffffff}, чтобы удалить лимит в принципе.\nВведите {00ccff}/rtime [ЧЧ:ММ]{ffffff}, чтобы установить новый лимит в часах и минутах.\n\n{ffcc00}Доступные команды:\n    {00ccff}/rtimer {ffffff}- главное меню скрипта.\n    {00ccff}/rtime {ffffff}- таймер задротства.\n    {00ccff}/rtimerlog {ffffff}- changelog скрипта.\n{00ccff}    /rtimernot{ffffff} - включить/выключить сообщение при входе в игру.", "Лады")
 end
 function changelog()
-	sampShowDialog(2342, "{348cb2}RTIMER: История версий.", "{ffcc00}v0.4 [27.11.17]\n{ffffff}Исправлен вылет скрипта при втором взятии миссии угона за один сеанс.\nСкрипт опубликован на rubbishman.ru/samp\n{ffcc00}v0.3 [23.11.17]\n{ffffff}Исправлен баг, при котором последнее время угона могло не сохранятся.\n{ffcc00}v0.2 [18.11.17]\n{ffffff}Исправлены все известные баги, добавлены новые.\nСкрипт тестируется в узком кругу людей.\n{ffcc00}v0.1 [16.11.17]\n{ffffff}Заложен фундамент для дальнейшей разработки.\n{ffffff}Написан таймер угона с функцией отслеживания статистики.\n{ffffff}Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.\n{ffffff}Написан таймер задротства.", "Закрыть")
+	sampShowDialog(2342, "{348cb2}RTIMER: История версий.", "{ffcc00}v1.02 [08.12.17]\n{ffffff}1. Исправлена ошибка с renderCreateFont, спасибо Don_Homka.\n2. НСФ и УСФ были перепутаны местами, исправлено.\n{ffcc00}v1.0 [07.12.17]\n{ffffff}1. Добавлен таймер дальнобойщика.\n2. Код скрипта теперь открыт.\n3. Скрипт опубликован на blast.hk\n4. Таймер задротства теперь обнуляется в 05:00, а не в 00:00.\n5. Доработано автообновление, теперь можно отключить в настройках.\n{ffcc00}v0.4 [27.11.17]\n{ffffff}1. Исправлен вылет скрипта при втором взятии миссии угона за один сеанс.\n2. Скрипт опубликован на rubbishman.ru/samp\n{ffcc00}v0.3 [23.11.17]\n{ffffff}1. Исправлен баг, при котором последнее время угона могло не сохранятся.\n{ffcc00}v0.2 [18.11.17]\n{ffffff}1. Исправлены все известные баги, добавлены новые.\n2. Скрипт тестируется в узком кругу людей.\n{ffcc00}v0.1 [16.11.17]\n{ffffff}1. Заложен фундамент для дальнейшей разработки.\n{ffffff}2. Написан таймер угона с функцией отслеживания статистики.\n{ffffff}3. Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.\n{ffffff}4. Написан таймер задротства.", "Закрыть")
 end
 --------------------------------------------------------------------------------
 -------------------------------------М Е Н Ю------------------------------------
@@ -1237,6 +1417,14 @@ mod_submenus_sa = {
 		end
 	},
 	{
+		title = 'Статистика дальнобоя',
+		onclick = function()
+			wait(100)
+			sampShowDialog(2347, "{348cb2}Статистика дальнобоя", "{ffffff}Заработок: {348cb2}"..settings.dalnoboy.dmoney, "Закрыть")
+		end
+	},
+
+	{
 		title = ' '
 	},
 	{
@@ -1249,6 +1437,17 @@ mod_submenus_sa = {
 				title = 'Вкл/выкл уведомление при запуске',
 				onclick = function()
 					cmdScriptInform()
+				end
+			},
+			{
+				title = 'Вкл/выкл автообновление',
+				onclick = function()
+					if settings.options.autoupdate == 1 then
+						settings.options.autoupdate = 0 sampAddChatMessage(('[RTIMER]: Автообновление выключено'), color)
+					else
+						settings.options.autoupdate = 1 sampAddChatMessage(('[RTIMER]: Автообновление включено'), color)
+					end
+					saveini(1)
 				end
 			},
 		}
@@ -1531,6 +1730,20 @@ mod_submenus_sa = {
 		}
 	},
 	{
+		title = 'Настройки таймера дальнобоя',
+		submenu = {
+			{
+				title = 'Вкл/выкл рендер дальнобоя',
+				onclick = function()
+					if settings.dalnoboy.render == true then settings.dalnoboy.render = false sampAddChatMessage('[RTIMER]: Рендер дальнобоя отключен.', color) else settings.dalnoboy.render = true sampAddChatMessage('[RTIMER]: Рендер дальнобоя включен.', color)
+					end
+					saveini(1)
+
+				end
+			},
+		}
+	},
+	{
 		title = 'Настройки таймера задротства',
 		submenu = {
 			{
@@ -1610,6 +1823,7 @@ mod_submenus_sa = {
 			},
 		}
 	},
+
 	{
 		title = 'Сбросить настройки (не статистику)',
 		onclick = function()
@@ -1655,6 +1869,20 @@ mod_submenus_sa = {
 	},
 	{
 		title = '{AAAAAA}Обновления'
+	},
+	{
+		title = 'Открыть страницу скрипта',
+		onclick = function()
+			local ffi = require 'ffi'
+			ffi.cdef [[
+						void* __stdcall ShellExecuteA(void* hwnd, const char* op, const char* file, const char* params, const char* dir, int show_cmd);
+						uint32_t __stdcall CoInitializeEx(void*, uint32_t);
+					]]
+			local shell32 = ffi.load 'Shell32'
+			local ole32 = ffi.load 'Ole32'
+			ole32.CoInitializeEx(nil, 2 + 4)
+			print(shell32.ShellExecuteA(nil, 'open', 'http://rubbishman.ru/samp/rtimer', nil, nil, 1))
+		end
 	},
 	{
 		title = 'История обновлений',
@@ -1769,6 +1997,7 @@ function saveintim()
 	end
 	wait(2000)
 end
+-- made by FYP
 function submenus_show(menu, caption, select_button, close_button, back_button)
 	select_button, close_button, back_button = select_button or 'Select', close_button or 'Close', back_button or 'Back'
 	prev_menus = {}
@@ -1808,8 +2037,9 @@ function submenus_show(menu, caption, select_button, close_button, back_button)
 	end
 	return display(menu, 31337, caption or menu.title)
 end
-function checkversion()
-	goplay = 0
+
+
+function update()
 	local fpath = os.getenv('TEMP') .. '\\rtimer-version.json'
 	downloadUrlToFile('http://rubbishman.ru/dev/samp/rtimer/version.json', fpath, function(id, status, p1, p2)
 		if status == dlstatus.STATUS_ENDDOWNLOADDATA then
@@ -1820,25 +2050,23 @@ function checkversion()
 			if info and info.latest then
 				version = tonumber(info.latest)
 				if version > tonumber(thisScript().version) then
-					sampAddChatMessage(('[RTIMER]: Обнаружено обновление. AutoReload может конфликтовать. Обновляюсь..'), 0x8B0000)
-					sampAddChatMessage(('[RTIMER]: Текущая версия: '..thisScript().version..". Новая версия: "..version), 0x8B0000)
-					goplay = 2
 					lua_thread.create(goupdate)
+				else
+					update = false
 				end
 			end
 		end
 	end
 end)
-wait(1000)
-if goplay ~= 2 then goplay = 1 end
 end
+--скачивание актуальной версии
 function goupdate()
+sampAddChatMessage(('[RTIMER]: Обнаружено обновление. Пытаюсь обновиться...'), color)
+sampAddChatMessage(('[RTIMER]: Текущая версия: '..thisScript().version..". Новая версия: "..version), color)
 wait(300)
-sampAddChatMessage(updatelink, color)
 downloadUrlToFile(updatelink, thisScript().path, function(id3, status1, p13, p23)
 	if status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
-	sampAddChatMessage(('[RTIMER]: Обновление завершено! Подробнее об обновлении - /rtimerlog.'), 0x8B0000)
-	goplay = 1
+	sampAddChatMessage(('[RTIMER]: Обновление завершено! Подробнее об обновлении - /rtimerlog.'), color)
 	thisScript():reload()
 end
 end)
