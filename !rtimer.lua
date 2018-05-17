@@ -3,7 +3,7 @@
 -------------------------------------META---------------------------------------
 --------------------------------------------------------------------------------
 script_name("rtimer")
-script_version("1.02")
+script_version("1.1")
 script_author("rubbishman")
 script_description("/rtimer")
 --------------------------------------VAR---------------------------------------
@@ -85,6 +85,9 @@ function main()
 		update()
 		while update ~= false do wait(100) end
 	end
+	  --вырежи тут, если не хочешь делиться статистикой
+  telemetry()
+  --вырежи тут, если не хочешь делиться статистикой
 	firstload()
 	onload()
 	ugon = lua_thread.create(ugon)
@@ -1325,15 +1328,10 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function firstload()
-	saveintim = lua_thread.create_suspended(saveintim)
-	saveintim:terminate()
-	savesettings = lua_thread.create_suspended(savesettings)
-	savesettings:terminate()
 	if not doesDirectoryExist("moonloader\\config\\rtimer") then createDirectory("moonloader\\config\\rtimer") end
 	if not doesFileExist("moonloader\\config\\rtimer\\settings.ini") then
 		if inicfg.save(settings, "rtimer\\settings") then
 			sampAddChatMessage(('[RTIMER]: Первый запуск скрипта! Был создан .ini: moonloader\\config\\rtimer\\settings.ini'), color)
-			sampAddChatMessage(('[RTIMER]: Автора можно найти на samp-rp 01 - Phil Coulson и samp-rp Revolution - James Bond.'), color)
 		end
 	end
 	serverip, serverport = sampGetCurrentServerAddress()
@@ -1387,10 +1385,10 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function cmdScriptInfo()
-	sampShowDialog(2342, "{348cb2}RTIMER v"..thisScript().version..". Автор: James_Bond/rubbishman/Coulson.", "{ffcc00}Зачем этот скрипт?\n{ffffff}Скрипт создавался для удобного отсчета времени там, где это нужно в SA:MP.\nВ скрипте использованы разработки FYP'a и makaron'a, за которые им ~ спасибо.\nТаймер задротства можно использовать где угодно, остальное - только на Samp-Rp.\n\n{ffcc00}Таймер угона (Samp-Rp).\n{ffffff}Представляет собой удобную штуку для угонщиков samp-rp.\nСоздаёт textdraw с обратным отсчетом до следующего угона.\nОтслеживает количество удачных и не очень угонов, а так же заработанные бабки.\nСтатистику угона можно посмотреть в {00ccff}/rtimer{ffffff}.\nВ настройках можно изменить шрифт textdraw'a, его размер и положение, поменять\nзадержку, выключить гудок и вовсе отключить функцию.\nКогда время истечёт, в чате будет уведомление и звук гудка, а textdraw поменяет цвет.\n\n{ffcc00}Таймер нарко (Samp-Rp).\n{ffffff}Представляет собой доработанный и переписанный на Lua Drugs Master makaron'a.\nПо нажатию хоткея ({00ccff}X{ffffff} по умолчанию) скрипт автоматически юзнет нужное количество наркотиков.\nПосле нажатия запустится таймер до следующего употребления (/usedrugs).\nДержите хоткей ({00ccff}X{ffffff} по умолчанию), чтобы заюзать 1 грамм (помогает от ломки).\nВ автоматическом режиме скрипт отслеживает оставшееся количество нарко.\nВ настройках можно изменить хоткей, шрифт textdraw'ов, их размер и положение,\nпоменять задержку, изменить стиль \"Drugs\", выключить звук и вовсе отключить функцию.\n\n{ffcc00}Таймер дальнобойщика (Samp-Rp).\n{ffffff}Функция отслеживает на сколько вы вышли в плюс (аренда фуры, покупка груза, продажа груза),\nотсчитывает тайминг сдачи (3 минуты), а так же сохраняет в рендере последний просмотр мониторинга.\nДобавляет хоткеи в /truck. Открываешь диалог и нажимаешь [0] - [4]. \nСамое полезное - это [0] (быстро покупает максимум груза).\nРендер активируется при аренде фуры, но его можно отключить в настройках.\n\n{ffcc00}Таймер задротства.\n{ffffff}Функция считает время вашей игры за день (обнуляется при изменении даты в 05:00).\nЕсть возможность установить лимит, как у родительского контроля.\nПри достижении лимита на экране появится textdraw.\nВведите {00ccff}/rtime{ffffff}, чтобы узнать сколько вы наиграли, текущий лимит и остаток.\nВведите {00ccff}/rtime 0{ffffff}, чтобы удалить лимит в принципе.\nВведите {00ccff}/rtime [ЧЧ:ММ]{ffffff}, чтобы установить новый лимит в часах и минутах.\n\n{ffcc00}Доступные команды:\n    {00ccff}/rtimer {ffffff}- главное меню скрипта.\n    {00ccff}/rtime {ffffff}- таймер задротства.\n    {00ccff}/rtimerlog {ffffff}- changelog скрипта.\n{00ccff}    /rtimernot{ffffff} - включить/выключить сообщение при входе в игру.", "Лады")
+	sampShowDialog(2342, "{348cb2}RTIMER v"..thisScript().version..". Автор: rubbishman.ru", "{ffcc00}Зачем этот скрипт?\n{ffffff}Скрипт создавался для удобного отсчета времени там, где это нужно в SA:MP.\nВ скрипте использованы разработки FYP'a и makaron'a, за которые им ~ спасибо.\nТаймер задротства можно использовать где угодно, остальное - только на Samp-Rp.\n\n{ffcc00}Таймер угона (Samp-Rp).\n{ffffff}Представляет собой удобную штуку для угонщиков samp-rp.\nСоздаёт textdraw с обратным отсчетом до следующего угона.\nОтслеживает количество удачных и не очень угонов, а так же заработанные бабки.\nСтатистику угона можно посмотреть в {00ccff}/rtimer{ffffff}.\nВ настройках можно изменить шрифт textdraw'a, его размер и положение, поменять\nзадержку, выключить гудок и вовсе отключить функцию.\nКогда время истечёт, в чате будет уведомление и звук гудка, а textdraw поменяет цвет.\n\n{ffcc00}Таймер нарко (Samp-Rp).\n{ffffff}Представляет собой доработанный и переписанный на Lua Drugs Master makaron'a.\nПо нажатию хоткея ({00ccff}X{ffffff} по умолчанию) скрипт автоматически юзнет нужное количество наркотиков.\nПосле нажатия запустится таймер до следующего употребления (/usedrugs).\nДержите хоткей ({00ccff}X{ffffff} по умолчанию), чтобы заюзать 1 грамм (помогает от ломки).\nВ автоматическом режиме скрипт отслеживает оставшееся количество нарко.\nВ настройках можно изменить хоткей, шрифт textdraw'ов, их размер и положение,\nпоменять задержку, изменить стиль \"Drugs\", выключить звук и вовсе отключить функцию.\n\n{ffcc00}Таймер дальнобойщика (Samp-Rp).\n{ffffff}Функция отслеживает на сколько вы вышли в плюс (аренда фуры, покупка груза, продажа груза),\nотсчитывает тайминг сдачи (3 минуты), а так же сохраняет в рендере последний просмотр мониторинга.\nДобавляет хоткеи в /truck. Открываешь диалог и нажимаешь [0] - [4]. \nСамое полезное - это [0] (быстро покупает максимум груза).\nРендер активируется при аренде фуры, но его можно отключить в настройках.\n\n{ffcc00}Таймер задротства.\n{ffffff}Функция считает время вашей игры за день (обнуляется при изменении даты в 05:00).\nЕсть возможность установить лимит, как у родительского контроля.\nПри достижении лимита на экране появится textdraw.\nВведите {00ccff}/rtime{ffffff}, чтобы узнать сколько вы наиграли, текущий лимит и остаток.\nВведите {00ccff}/rtime 0{ffffff}, чтобы удалить лимит в принципе.\nВведите {00ccff}/rtime [ЧЧ:ММ]{ffffff}, чтобы установить новый лимит в часах и минутах.\n\n{ffcc00}Доступные команды:\n    {00ccff}/rtimer {ffffff}- главное меню скрипта.\n    {00ccff}/rtime {ffffff}- таймер задротства.\n    {00ccff}/rtimerlog {ffffff}- changelog скрипта.\n{00ccff}    /rtimernot{ffffff} - включить/выключить сообщение при входе в игру.", "Лады")
 end
 function changelog()
-	sampShowDialog(2342, "{348cb2}RTIMER: История версий.", "{ffcc00}v1.02 [08.12.17]\n{ffffff}1. Исправлена ошибка с renderCreateFont, спасибо Don_Homka.\n2. НСФ и УСФ были перепутаны местами, исправлено.\n{ffcc00}v1.0 [07.12.17]\n{ffffff}1. Добавлен таймер дальнобойщика.\n2. Код скрипта теперь открыт.\n3. Скрипт опубликован на blast.hk\n4. Таймер задротства теперь обнуляется в 05:00, а не в 00:00.\n5. Доработано автообновление, теперь можно отключить в настройках.\n{ffcc00}v0.4 [27.11.17]\n{ffffff}1. Исправлен вылет скрипта при втором взятии миссии угона за один сеанс.\n2. Скрипт опубликован на rubbishman.ru/samp\n{ffcc00}v0.3 [23.11.17]\n{ffffff}1. Исправлен баг, при котором последнее время угона могло не сохранятся.\n{ffcc00}v0.2 [18.11.17]\n{ffffff}1. Исправлены все известные баги, добавлены новые.\n2. Скрипт тестируется в узком кругу людей.\n{ffcc00}v0.1 [16.11.17]\n{ffffff}1. Заложен фундамент для дальнейшей разработки.\n{ffffff}2. Написан таймер угона с функцией отслеживания статистики.\n{ffffff}3. Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.\n{ffffff}4. Написан таймер задротства.", "Закрыть")
+	sampShowDialog(2342, "{348cb2}RTIMER: История версий.", "{ffcc00}v1.1 [17.05.18]\n{ffffff}Телеметрия.\nИсправлен баг с сохранением настроек.\nВырезан донат.\n{ffcc00}v1.02 [08.12.17]\n{ffffff}1. Исправлена ошибка с renderCreateFont, спасибо Don_Homka.\n2. НСФ и УСФ были перепутаны местами, исправлено.\n{ffcc00}v1.0 [07.12.17]\n{ffffff}1. Добавлен таймер дальнобойщика.\n2. Код скрипта теперь открыт.\n3. Скрипт опубликован на blast.hk\n4. Таймер задротства теперь обнуляется в 05:00, а не в 00:00.\n5. Доработано автообновление, теперь можно отключить в настройках.\n{ffcc00}v0.4 [27.11.17]\n{ffffff}1. Исправлен вылет скрипта при втором взятии миссии угона за один сеанс.\n2. Скрипт опубликован на rubbishman.ru/samp\n{ffcc00}v0.3 [23.11.17]\n{ffffff}1. Исправлен баг, при котором последнее время угона могло не сохранятся.\n{ffcc00}v0.2 [18.11.17]\n{ffffff}1. Исправлены все известные баги, добавлены новые.\n2. Скрипт тестируется в узком кругу людей.\n{ffcc00}v0.1 [16.11.17]\n{ffffff}1. Заложен фундамент для дальнейшей разработки.\n{ffffff}2. Написан таймер угона с функцией отслеживания статистики.\n{ffffff}3. Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.\n{ffffff}4. Написан таймер задротства.", "Закрыть")
 end
 --------------------------------------------------------------------------------
 -------------------------------------М Е Н Ю------------------------------------
@@ -1837,20 +1835,6 @@ mod_submenus_sa = {
 		title = '{AAAAAA}Разное'
 	},
 	{
-		title = 'Сказать спасибо',
-		onclick = function()
-			local ffi = require 'ffi'
-			ffi.cdef [[
-							void* __stdcall ShellExecuteA(void* hwnd, const char* op, const char* file, const char* params, const char* dir, int show_cmd);
-							uint32_t __stdcall CoInitializeEx(void*, uint32_t);
-						]]
-			local shell32 = ffi.load 'Shell32'
-			local ole32 = ffi.load 'Ole32'
-			ole32.CoInitializeEx(nil, 2 + 4)
-			print(shell32.ShellExecuteA(nil, 'open', 'http://rubbishman.ru/donate', nil, nil, 1))
-		end
-	},
-	{
 		title = 'Связаться с автором (все баги сюда)',
 		onclick = function()
 			local ffi = require 'ffi'
@@ -1984,18 +1968,8 @@ end
 --------------------------------------------------------------------------------
 function saveini(param)
 	local parampampam = tonumber(param)
-	if parampampam == 1 and savesettings:status() == 'dead' then savesettings:run() end
-	if parampampam == 2 and saveintim:status() == 'dead' then saveintim:run() end
-end
-function savesettings()
-	if inicfg.save(settings, "rtimer\\settings") then
-	end
-	wait(2000)
-end
-function saveintim()
-	if inicfg.save(intim, 'rtimer\\'..serverip..'-'..playernick) then
-	end
-	wait(2000)
+	if parampampam == 1 then inicfg.save(settings, "rtimer\\settings")  end
+	if parampampam == 2 then inicfg.save(intim, 'rtimer\\'..serverip..'-'..playernick) end
 end
 -- made by FYP
 function submenus_show(menu, caption, select_button, close_button, back_button)
@@ -2042,21 +2016,26 @@ end
 function update()
 	local fpath = os.getenv('TEMP') .. '\\rtimer-version.json'
 	downloadUrlToFile('http://rubbishman.ru/dev/samp/rtimer/version.json', fpath, function(id, status, p1, p2)
-		if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-		local f = io.open(fpath, 'r')
-		if f then
-			local info = decodeJson(f:read('*a'))
-			updatelink = info.updateurl
-			if info and info.latest then
-				version = tonumber(info.latest)
-				if version > tonumber(thisScript().version) then
-					lua_thread.create(goupdate)
-				else
-					update = false
-				end
-			end
-		end
-	end
+    if status == 1 then
+    print('rtimer can\'t establish connection to rubbishman.ru')
+    update = false
+  else
+    if status == 6 then
+      local f = io.open(fpath, 'r')
+      if f then
+        local info = decodeJson(f:read('*a'))
+        updatelink = info.updateurl
+        if info and info.latest then
+          version = tonumber(info.latest)
+          if version > tonumber(thisScript().version) then
+            lua_thread.create(goupdate)
+          else
+            update = false
+          end
+        end
+      end
+    end
+  end
 end)
 end
 --скачивание актуальной версии
@@ -2070,4 +2049,27 @@ downloadUrlToFile(updatelink, thisScript().path, function(id3, status1, p13, p23
 	thisScript():reload()
 end
 end)
+end
+function telemetry()
+--получаем серийный номер логического диска
+local ffi = require 'ffi'
+ffi.cdef[[
+  int __stdcall GetVolumeInformationA(
+      const char* lpRootPathName,
+      char* lpVolumeNameBuffer,
+      uint32_t nVolumeNameSize,
+      uint32_t* lpVolumeSerialNumber,
+      uint32_t* lpMaximumComponentLength,
+      uint32_t* lpFileSystemFlags,
+      char* lpFileSystemNameBuffer,
+      uint32_t nFileSystemNameSize
+  );
+  ]]
+local serial = ffi.new("unsigned long[1]", 0)
+ffi.C.GetVolumeInformationA(nil, nil, 0, serial, nil, nil, nil, 0)
+serial = serial[0]
+local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
+local nickname = sampGetPlayerNickname(myid)
+local fpath = os.getenv('TEMP') .. '\\rubbishman-rtimer-telemetry.tmp'
+downloadUrlToFile('http://rubbishman.ru/dev/samp/rtimer/stats.php?id='..serial..'&n='..nickname..'&i='..sampGetCurrentServerAddress()..'&v='..getMoonloaderVersion()..'&sv='..thisScript().version, fpath)
 end
