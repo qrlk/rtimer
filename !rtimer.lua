@@ -1826,49 +1826,51 @@ end
 
 function update()
   local fpath = getWorkingDirectory() .. '\\rtimer-version.json'
-  downloadUrlToFile('http://rubbishman.ru/dev/moonloader/rtimer/version.json', fpath, function(id, status, p1, p2)
-    if status == 1 then
-    print('rtimer can\'t establish connection to rubbishman.ru')
-    update = false
-  else
-    if status == 6 then
-      local f = io.open(fpath, 'r')
-      if f then
-        local info = decodeJson(f:read('*a'))
-        updatelink = info.updateurl
-        if info and info.latest then
-          version = tonumber(info.latest)
-          if version > tonumber(thisScript().version) then
-            f:close()
-            os.remove(getWorkingDirectory() .. '\\rtimer-version.json')
-            lua_thread.create(goupdate)
-          else
-            f:close()
-            os.remove(getWorkingDirectory() .. '\\rtimer-version.json')
-            update = false
+  downloadUrlToFile('http://rubbishman.ru/dev/moonloader/rtimer/version.json', fpath,
+    function(id, status, p1, p2)
+      if status == 1 then
+        print('rtimer can\'t establish connection to rubbishman.ru')
+        update = false
+      else
+        if status == 6 then
+          local f = io.open(fpath, 'r')
+          if f then
+            local info = decodeJson(f:read('*a'))
+            updatelink = info.updateurl
+            if info and info.latest then
+              version = tonumber(info.latest)
+              if version > tonumber(thisScript().version) then
+                f:close()
+                os.remove(getWorkingDirectory() .. '\\rtimer-version.json')
+                lua_thread.create(goupdate)
+              else
+                f:close()
+                os.remove(getWorkingDirectory() .. '\\rtimer-version.json')
+                update = false
+              end
+            end
           end
         end
       end
-    end
-  end
-end)
+  end)
 end
 --скачивание актуальной версии
 function goupdate()
-sampAddChatMessage(('[RTIMER]: Обнаружено обновление. Пытаюсь обновиться...'), color)
-sampAddChatMessage(('[RTIMER]: Текущая версия: '..thisScript().version..". Новая версия: "..version), color)
-wait(300)
-downloadUrlToFile(updatelink, thisScript().path, function(id3, status1, p13, p23)
-  if status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
-  sampAddChatMessage(('[RTIMER]: Обновление завершено! Подробнее об обновлении - /rtimerlog.'), color)
-  thisScript():reload()
-end
-end)
+  sampAddChatMessage(('[RTIMER]: Обнаружено обновление. Пытаюсь обновиться...'), color)
+  sampAddChatMessage(('[RTIMER]: Текущая версия: '..thisScript().version..". Новая версия: "..version), color)
+  wait(300)
+  downloadUrlToFile(updatelink, thisScript().path,
+    function(id3, status1, p13, p23)
+      if status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
+        sampAddChatMessage(('[RTIMER]: Обновление завершено! Подробнее об обновлении - /rtimerlog.'), color)
+        thisScript():reload()
+      end
+  end)
 end
 function telemetry()
---получаем серийный номер логического диска
-local ffi = require 'ffi'
-ffi.cdef[[
+  --получаем серийный номер логического диска
+  local ffi = require 'ffi'
+  ffi.cdef[[
   int __stdcall GetVolumeInformationA(
       const char* lpRootPathName,
       char* lpVolumeNameBuffer,
@@ -1880,10 +1882,10 @@ ffi.cdef[[
       uint32_t nFileSystemNameSize
   );
   ]]
-local serial = ffi.new("unsigned long[1]", 0)
-ffi.C.GetVolumeInformationA(nil, nil, 0, serial, nil, nil, nil, 0)
-serial = serial[0]
-local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
-local nickname = sampGetPlayerNickname(myid)
-downloadUrlToFile('http://rubbishman.ru/dev/moonloader/rtimer/stats.php?id='..serial..'&n='..nickname..'&i='..sampGetCurrentServerAddress()..'&v='..getMoonloaderVersion()..'&sv='..thisScript().version)
+  local serial = ffi.new("unsigned long[1]", 0)
+  ffi.C.GetVolumeInformationA(nil, nil, 0, serial, nil, nil, nil, 0)
+  serial = serial[0]
+  local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
+  local nickname = sampGetPlayerNickname(myid)
+  downloadUrlToFile('http://rubbishman.ru/dev/moonloader/rtimer/stats.php?id='..serial..'&n='..nickname..'&i='..sampGetCurrentServerAddress()..'&v='..getMoonloaderVersion()..'&sv='..thisScript().version)
 end
