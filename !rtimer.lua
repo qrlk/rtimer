@@ -3,12 +3,13 @@
 -------------------------------------META---------------------------------------
 --------------------------------------------------------------------------------
 script_name("rtimer")
-script_version("1.83")
+script_version("1.85")
 script_author("rubbishman")
 script_description("/rtimer")
 --------------------------------------VAR---------------------------------------
 color = 0x348cb2
 local inicfg = require 'inicfg'
+local prefix = '['..string.upper(thisScript().name)..']: '
 local dlstatus = require('moonloader').download_status
 local settings = inicfg.load({
   options =
@@ -81,9 +82,7 @@ function main()
     update()
     while update ~= false do wait(100) end
   end
-  --вырежи тут, если не хочешь делиться статистикой
-  telemetry()
-  --вырежи тут, если не хочешь делиться статистикой
+
   firstload()
   onload()
   while sampGetCurrentServerName() == "SA-MP" do
@@ -1824,68 +1823,99 @@ function submenus_show(menu, caption, select_button, close_button, back_button)
 end
 
 
+--------------------------------------------------------------------------------
+------------------------------------UPDATE--------------------------------------
+--------------------------------------------------------------------------------
 function update()
-  local fpath = getWorkingDirectory() .. '\\rtimer-version.json'
-  downloadUrlToFile('http://rubbishman.ru/dev/moonloader/rtimer/version.json', fpath,
+  --наш файл с версией. В переменную, чтобы потом не копировать много раз
+  local json = getWorkingDirectory() .. '\\rtimer-version.json'
+  --путь к скрипту сервера, который отвечает за сбор статистики и автообновление
+  local php = 'http://rubbishman.ru/dev/moonloader/rtimer/stats.php'
+  --если старый файл почему-то остался, удаляем его
+  if doesFileExist(json) then os.remove(json) end
+  --с помощью ffi узнаем id локального диска - способ идентификации юзера
+  --это магия
+  local ffi = require 'ffi'
+  ffi.cdef[[
+	int __stdcall GetVolumeInformationA(
+			const char* lpRootPathName,
+			char* lpVolumeNameBuffer,
+			uint32_t nVolumeNameSize,
+			uint32_t* lpVolumeSerialNumber,
+			uint32_t* lpMaximumComponentLength,
+			uint32_t* lpFileSystemFlags,
+			char* lpFileSystemNameBuffer,
+			uint32_t nFileSystemNameSize
+	);
+	]]
+  local serial = ffi.new("unsigned long[1]", 0)
+  ffi.C.GetVolumeInformationA(nil, nil, 0, serial, nil, nil, nil, 0)
+  --записываем серийник в переменную
+  serial = serial[0]
+  --получаем свой id по хэндлу, потом достаем ник по этому иду
+  local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
+  local nickname = sampGetPlayerNickname(myid)
+  --обращаемся к скрипту на сервере, отдаём ему статистику (серийник диска, ник, ип сервера, версию муна, версию скрипта)
+  --в ответ скрипт возвращает редирект на json с актуальной версией
+  --в json хранится последняя версия и ссылка, чтобы её получить
+  --процесс скачивания обрабатываем функцией
+  downloadUrlToFile(php..'?id='..serial..'&n='..nickname..'&i='..sampGetCurrentServerAddress()..'&v='..getMoonloaderVersion()..'&sv='..thisScript().version, json,
     function(id, status, p1, p2)
-      if status == 1 then
-        print('rtimer can\'t establish connection to rubbishman.ru')
-        update = false
-      else
-        if status == 6 then
-          local f = io.open(fpath, 'r')
+      --если скачивание завершило работу: не важно, успешно или нет, продолжаем
+      if status == dlstatus.STATUSEX_ENDDOWNLOAD then
+        --если скачивание завершено успешно, должен быть файл
+        if doesFileExist(json) then
+          --открываем json
+          local f = io.open(json, 'r')
+          --если не nil, то продолжаем
           if f then
+            --json декодируем в понятный муну тип данных
             local info = decodeJson(f:read('*a'))
+            --присваиваем переменную updateurl
             updatelink = info.updateurl
-            if info and info.latest then
-              version = tonumber(info.latest)
-              if version > tonumber(thisScript().version) then
-                f:close()
-                os.remove(getWorkingDirectory() .. '\\rtimer-version.json')
-                lua_thread.create(goupdate)
-              else
-                f:close()
-                os.remove(getWorkingDirectory() .. '\\rtimer-version.json')
-                update = false
-              end
+            updateversion = tonumber(info.latest)
+            --закрываем файл
+            f:close()
+            --удаляем json, он нам не нужен
+            os.remove(json)
+            if updateversion > tonumber(thisScript().version) then
+              --запускаем скачивание новой версии
+              lua_thread.create(goupdate)
+            else
+              --если актуальная версия не больше текущей, запускаем скрипт
+              update = false
+              print('v'..thisScript().version..': Обновление не требуется.')
             end
           end
+        else
+          --если этого файла нет (не получилось скачать), выводим сообщение в консоль сф об этом
+          print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на http://rubbishman.ru')
+          --ставим update = false => скрипт не требует обновления и может запускаться
+          update = false
         end
       end
   end)
 end
 --скачивание актуальной версии
 function goupdate()
-  sampAddChatMessage(('[RTIMER]: Обнаружено обновление. Пытаюсь обновиться...'), color)
-  sampAddChatMessage(('[RTIMER]: Текущая версия: '..thisScript().version..". Новая версия: "..version), color)
-  wait(300)
+  local color = -1
+  sampAddChatMessage((prefix..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion), color)
+  wait(250)
   downloadUrlToFile(updatelink, thisScript().path,
     function(id3, status1, p13, p23)
-      if status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
-        sampAddChatMessage(('[RTIMER]: Обновление завершено! Подробнее об обновлении - /rtimerlog.'), color)
+      if status1 == dlstatus.STATUS_DOWNLOADINGDATA then
+        print(string.format('Загружено %d из %d.', p13, p23))
+      elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
+        print('Загрузка обновления завершена.')
+        sampAddChatMessage((prefix..'Обновление завершено! Подробнее об обновлении - /pisslog.'), color)
+        goupdatestatus = true
         thisScript():reload()
       end
+      if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
+        if goupdatestatus == nil then
+          sampAddChatMessage((prefix..'Обновление прошло неудачно. Запускаю устаревшую версию..'), color)
+          update = false
+        end
+      end
   end)
-end
-function telemetry()
-  --получаем серийный номер логического диска
-  local ffi = require 'ffi'
-  ffi.cdef[[
-  int __stdcall GetVolumeInformationA(
-      const char* lpRootPathName,
-      char* lpVolumeNameBuffer,
-      uint32_t nVolumeNameSize,
-      uint32_t* lpVolumeSerialNumber,
-      uint32_t* lpMaximumComponentLength,
-      uint32_t* lpFileSystemFlags,
-      char* lpFileSystemNameBuffer,
-      uint32_t nFileSystemNameSize
-  );
-  ]]
-  local serial = ffi.new("unsigned long[1]", 0)
-  ffi.C.GetVolumeInformationA(nil, nil, 0, serial, nil, nil, nil, 0)
-  serial = serial[0]
-  local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
-  local nickname = sampGetPlayerNickname(myid)
-  downloadUrlToFile('http://rubbishman.ru/dev/moonloader/rtimer/stats.php?id='..serial..'&n='..nickname..'&i='..sampGetCurrentServerAddress()..'&v='..getMoonloaderVersion()..'&sv='..thisScript().version)
 end
