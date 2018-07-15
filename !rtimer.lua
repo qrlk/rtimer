@@ -1,11 +1,50 @@
+--Больше скриптов от автора можно найти в группе ВК: http://vk.com/qrlk.mods
 --Больше скриптов от автора можно найти на сайте: http://www.rubbishman.ru/samp
 --------------------------------------------------------------------------------
 -------------------------------------META---------------------------------------
 --------------------------------------------------------------------------------
 script_name("rtimer")
-script_version("1.85")
+script_version("1.9")
 script_author("rubbishman")
 script_description("/rtimer")
+script_changelog =
+[[{ffcc00}v1.9 [15.07.18]{ffffff}
+1. Ребрендинг, группа вк. Серьёзно, подписывайтесь.
+2. Теперь changelog можно прочитать, открыв файл блокнотом.
+{ffcc00}v1.83 [15.06.18]{ffffff}
+1. Если сервер не срп, то нарко и угон не запускаются.
+{ffcc00}v1.82 [19.05.18]{ffffff}
+1. Адаптация к moonloader v026.
+2. Вырезан дальнобой, используй TruckHUD.
+3. Адаптация нарко к обнове срп 18.05.18
+{ffcc00}v1.777 [18.05.18]{ffffff}
+1. Фикс автообновления и телеметрии.
+{ffcc00}v1.1 [17.05.18]{ffffff}
+1. Телеметрия.
+2. Исправлен баг с сохранением настроек.
+3. Вырезан донат.
+{ffcc00}v1.02 [08.12.17]{ffffff}
+1. Исправлена ошибка с renderCreateFont, спасибо Don_Homka.
+2. НСФ и УСФ были перепутаны местами, исправлено.
+{ffcc00}v1.0 [07.12.17]{ffffff}
+1. Добавлен таймер дальнобойщика.
+2. Код скрипта теперь открыт.
+3. Скрипт опубликован на blast.hk
+4. Таймер задротства теперь обнуляется в 05:00, а не в 00:00.
+5. Доработано автообновление, теперь можно отключить в настройках.
+{ffcc00}v0.4 [27.11.17]{ffffff}
+1. Исправлен вылет скрипта при втором взятии миссии угона за один сеанс.
+2. Скрипт опубликован на rubbishman.ru/samp
+{ffcc00}v0.3 [23.11.17]{ffffff}
+1. Исправлен баг, при котором последнее время угона могло не сохранятся.
+{ffcc00}v0.2 [18.11.17]{ffffff}
+1. Исправлены все известные баги, добавлены новые.
+2. Скрипт тестируется в узком кругу людей.
+{ffcc00}v0.1 [16.11.17]{ffffff}
+1. Заложен фундамент для дальнейшей разработки.
+2. Написан таймер угона с функцией отслеживания статистики.
+3. Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.
+4. Написан таймер задротства.]]
 --------------------------------------VAR---------------------------------------
 color = 0x348cb2
 local inicfg = require 'inicfg'
@@ -16,6 +55,7 @@ local settings = inicfg.load({
   {
     startmessage = 1,
     autoupdate = 1,
+		showad = true,
   },
   ugon =
   {
@@ -82,7 +122,14 @@ function main()
     update()
     while update ~= false do wait(100) end
   end
-
+	if settings.options.showad == true then
+		sampAddChatMessage("[RTIMER]: Внимание! У нас появилась группа ВКонтакте: vk.com/qrlk.mods", -1)
+		sampAddChatMessage("[RTIMER]: Подписавшись на неё, вы сможете получать новости об обновлениях,", -1)
+		sampAddChatMessage("[RTIMER]: новых скриптах, а так же учавствовать в розыгрышах платных скриптов!", -1)
+		sampAddChatMessage("[RTIMER]: Это сообщение показывается один раз для каждого скрипта. Спасибо за внимание.", -1)
+		settings.options.showad = false
+		inicfg.save(settings, "rtimer\\settings")
+	end
   firstload()
   onload()
   while sampGetCurrentServerName() == "SA-MP" do
@@ -1148,8 +1195,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function firstload()
-  if not doesDirectoryExist("moonloader\\config\\rtimer") then createDirectory("moonloader\\config\\rtimer") end
-  if not doesFileExist("moonloader\\config\\rtimer\\settings.ini") then
+  if not doesDirectoryExist(getGameDirectory().."\\moonloader\\config\\rtimer") then createDirectory(getGameDirectory().."\\moonloader\\config\\rtimer") end
+  if not doesFileExist(getGameDirectory().."\\moonloader\\config\\rtimer\\settings.ini") then
     if inicfg.save(settings, "rtimer\\settings") then
       sampAddChatMessage(('[RTIMER]: Первый запуск скрипта! Был создан .ini: moonloader\\config\\rtimer\\settings.ini'), color)
     end
@@ -1169,7 +1216,7 @@ function firstload()
       kolvo = "???",
     },
   }, 'rtimer\\'..serverip..'-'..playernick)
-  if not doesFileExist("moonloader\\config\\rtimer\\"..serverip.."-"..playernick..".ini") then
+  if not doesFileExist(getGameDirectory().."\\moonloader\\config\\rtimer\\"..serverip.."-"..playernick..".ini") then
     if inicfg.save(intim, 'rtimer\\'..serverip..'-'..playernick) then
       sampAddChatMessage(("[RTIMER]: Первый запуск на этом сервере с этим ником. Создан "..serverip.."-"..playernick..".ini"), color)
     end
@@ -1192,7 +1239,7 @@ function onload()
   sampRegisterChatCommand('rtime', rtime)
   sampRegisterChatCommand('rtimerlog', changelog)
   if settings.options.startmessage == 1 then
-    sampAddChatMessage(('RTIMER v'..thisScript().version..' by rubbishman запущен.'),
+    sampAddChatMessage(('RTIMER v'..thisScript().version..' запущен. <> by qrlk.'),
     color)
     sampAddChatMessage(('Подробнее - /rtimer. Отключить это сообщение - /rtimernot'), color)
   end
@@ -1205,16 +1252,16 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 function cmdScriptInfo()
-  sampShowDialog(2342, "{348cb2}RTIMER v"..thisScript().version..". Автор: rubbishman.ru", "{ffcc00}Зачем этот скрипт?\n{ffffff}Скрипт создавался для удобного отсчета времени там, где это нужно в SA:MP.\nВ скрипте использованы разработки FYP'a и makaron'a, за которые им ~ спасибо.\nТаймер задротства можно использовать где угодно, остальное - только на Samp-Rp.\n\n{ffcc00}Таймер угона (Samp-Rp).\n{ffffff}Представляет собой удобную штуку для угонщиков samp-rp.\nСоздаёт textdraw с обратным отсчетом до следующего угона.\nОтслеживает количество удачных и не очень угонов, а так же заработанные бабки.\nСтатистику угона можно посмотреть в {00ccff}/rtimer{ffffff}.\nВ настройках можно изменить шрифт textdraw'a, его размер и положение, поменять\nзадержку, выключить гудок и вовсе отключить функцию.\nКогда время истечёт, в чате будет уведомление и звук гудка, а textdraw поменяет цвет.\n\n{ffcc00}Таймер нарко (Samp-Rp).\n{ffffff}Представляет собой доработанный и переписанный на Lua Drugs Master makaron'a.\nПо нажатию хоткея ({00ccff}X{ffffff} по умолчанию) скрипт автоматически юзнет нужное количество наркотиков.\nПосле нажатия запустится таймер до следующего употребления (/usedrugs).\nДержите хоткей ({00ccff}X{ffffff} по умолчанию), чтобы заюзать 1 грамм (помогает от ломки).\nВ автоматическом режиме скрипт отслеживает оставшееся количество нарко.\nВ настройках можно изменить хоткей, шрифт textdraw'ов, их размер и положение,\nпоменять задержку, изменить стиль \"Drugs\", выключить звук и вовсе отключить функцию.\n\n{ffcc00}Таймер дальнобойщика (Samp-Rp).\n{ffffff}Вырезан в 1.81 по причине наличия более удачной реализации идеи.\nЯ не дальнобой и писал на отъебись эту часть скрипта.\nИспользуйте TruckHUD.lua\n\n{ffcc00}Таймер задротства.\n{ffffff}Функция считает время вашей игры за день (обнуляется при изменении даты в 05:00).\nЕсть возможность установить лимит, как у родительского контроля.\nПри достижении лимита на экране появится textdraw.\nВведите {00ccff}/rtime{ffffff}, чтобы узнать сколько вы наиграли, текущий лимит и остаток.\nВведите {00ccff}/rtime 0{ffffff}, чтобы удалить лимит в принципе.\nВведите {00ccff}/rtime [ЧЧ:ММ]{ffffff}, чтобы установить новый лимит в часах и минутах.\n\n{ffcc00}Доступные команды:\n    {00ccff}/rtimer {ffffff}- главное меню скрипта.\n    {00ccff}/rtime {ffffff}- таймер задротства.\n    {00ccff}/rtimerlog {ffffff}- changelog скрипта.\n{00ccff}    /rtimernot{ffffff} - включить/выключить сообщение при входе в игру.", "Лады")
+  sampShowDialog(2342, "{348cb2}RTIMER v"..thisScript().version..". Автор: qrlk.", "{ffcc00}Зачем этот скрипт?\n{ffffff}Скрипт создавался для удобного отсчета времени там, где это нужно в SA:MP.\nВ скрипте использованы разработки FYP'a и makaron'a, за которые им ~ спасибо.\nТаймер задротства можно использовать где угодно, остальное - только на Samp-Rp.\n\n{ffcc00}Таймер угона (Samp-Rp).\n{ffffff}Представляет собой удобную штуку для угонщиков samp-rp.\nСоздаёт textdraw с обратным отсчетом до следующего угона.\nОтслеживает количество удачных и не очень угонов, а так же заработанные бабки.\nСтатистику угона можно посмотреть в {00ccff}/rtimer{ffffff}.\nВ настройках можно изменить шрифт textdraw'a, его размер и положение, поменять\nзадержку, выключить гудок и вовсе отключить функцию.\nКогда время истечёт, в чате будет уведомление и звук гудка, а textdraw поменяет цвет.\n\n{ffcc00}Таймер нарко (Samp-Rp).\n{ffffff}Представляет собой доработанный и переписанный на Lua Drugs Master makaron'a.\nПо нажатию хоткея ({00ccff}X{ffffff} по умолчанию) скрипт автоматически юзнет нужное количество наркотиков.\nПосле нажатия запустится таймер до следующего употребления (/usedrugs).\nДержите хоткей ({00ccff}X{ffffff} по умолчанию), чтобы заюзать 1 грамм (помогает от ломки).\nВ автоматическом режиме скрипт отслеживает оставшееся количество нарко.\nВ настройках можно изменить хоткей, шрифт textdraw'ов, их размер и положение,\nпоменять задержку, изменить стиль \"Drugs\", выключить звук и вовсе отключить функцию.\n\n{ffcc00}Таймер дальнобойщика (Samp-Rp).\n{ffffff}Вырезан в 1.81 по причине наличия более удачной реализации идеи.\nЯ не дальнобой и писал на отъебись эту часть скрипта.\nИспользуйте TruckHUD.lua\n\n{ffcc00}Таймер задротства.\n{ffffff}Функция считает время вашей игры за день (обнуляется при изменении даты в 05:00).\nЕсть возможность установить лимит, как у родительского контроля.\nПри достижении лимита на экране появится textdraw.\nВведите {00ccff}/rtime{ffffff}, чтобы узнать сколько вы наиграли, текущий лимит и остаток.\nВведите {00ccff}/rtime 0{ffffff}, чтобы удалить лимит в принципе.\nВведите {00ccff}/rtime [ЧЧ:ММ]{ffffff}, чтобы установить новый лимит в часах и минутах.\n\n{ffcc00}Доступные команды:\n    {00ccff}/rtimer {ffffff}- главное меню скрипта.\n    {00ccff}/rtime {ffffff}- таймер задротства.\n    {00ccff}/rtimerlog {ffffff}- changelog скрипта.\n{00ccff}    /rtimernot{ffffff} - включить/выключить сообщение при входе в игру.", "Лады")
 end
 function changelog()
-  sampShowDialog(2342, "{348cb2}RTIMER: История версий.", "{ffcc00}v1.83 [15.06.18]\n{ffffff}1. Если сервер не срп, то нарко и угон не запускаются.\n{ffcc00}v1.82 [19.05.18]\n{ffffff}1. Адаптация к moonloader v026.\n2. Вырезан дальнобой, используй TruckHUD.\n3. Адаптация нарко к обнове срп 18.05.18\n{ffcc00}v1.777 [18.05.18]\n{ffffff}1. Фикс автообновления и телеметрии.\n{ffcc00}v1.1 [17.05.18]\n{ffffff}1. Телеметрия.\n2. Исправлен баг с сохранением настроек.\n3. Вырезан донат.\n{ffcc00}v1.02 [08.12.17]\n{ffffff}1. Исправлена ошибка с renderCreateFont, спасибо Don_Homka.\n2. НСФ и УСФ были перепутаны местами, исправлено.\n{ffcc00}v1.0 [07.12.17]\n{ffffff}1. Добавлен таймер дальнобойщика.\n2. Код скрипта теперь открыт.\n3. Скрипт опубликован на blast.hk\n4. Таймер задротства теперь обнуляется в 05:00, а не в 00:00.\n5. Доработано автообновление, теперь можно отключить в настройках.\n{ffcc00}v0.4 [27.11.17]\n{ffffff}1. Исправлен вылет скрипта при втором взятии миссии угона за один сеанс.\n2. Скрипт опубликован на rubbishman.ru/samp\n{ffcc00}v0.3 [23.11.17]\n{ffffff}1. Исправлен баг, при котором последнее время угона могло не сохранятся.\n{ffcc00}v0.2 [18.11.17]\n{ffffff}1. Исправлены все известные баги, добавлены новые.\n2. Скрипт тестируется в узком кругу людей.\n{ffcc00}v0.1 [16.11.17]\n{ffffff}1. Заложен фундамент для дальнейшей разработки.\n{ffffff}2. Написан таймер угона с функцией отслеживания статистики.\n{ffffff}3. Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.\n{ffffff}4. Написан таймер задротства.", "Закрыть")
+  sampShowDialog(2342, "{348cb2}RTIMER: История версий.", script_changelog, "Закрыть")
 end
 --------------------------------------------------------------------------------
 -------------------------------------М Е Н Ю------------------------------------
 --------------------------------------------------------------------------------
 function menu()
-  submenus_show(mod_submenus_sa, '{348cb2}RTIMER v'..thisScript().version..' by rubbishman', 'Выбрать', 'Закрыть', 'Назад')
+  submenus_show(mod_submenus_sa, '{348cb2}RTIMER v'..thisScript().version..' by qrlk.', 'Выбрать', 'Закрыть', 'Назад')
 end
 function scriptmenu()
   menutrigger = 1
@@ -1664,6 +1711,20 @@ mod_submenus_sa = {
   {
     title = '{AAAAAA}Обновления'
   },
+	{
+		title = 'Подписывайтесь на группу ВКонтакте!',
+		onclick = function()
+			local ffi = require 'ffi'
+			ffi.cdef [[
+							void* __stdcall ShellExecuteA(void* hwnd, const char* op, const char* file, const char* params, const char* dir, int show_cmd);
+							uint32_t __stdcall CoInitializeEx(void*, uint32_t);
+						]]
+			local shell32 = ffi.load 'Shell32'
+			local ole32 = ffi.load 'Ole32'
+			ole32.CoInitializeEx(nil, 2 + 4)
+			print(shell32.ShellExecuteA(nil, 'open', 'http://vk.com/qrlk.mods', nil, nil, 1))
+		end
+	},
   {
     title = 'Открыть страницу скрипта',
     onclick = function()
@@ -1907,7 +1968,7 @@ function goupdate()
         print(string.format('Загружено %d из %d.', p13, p23))
       elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
         print('Загрузка обновления завершена.')
-        sampAddChatMessage((prefix..'Обновление завершено! Подробнее об обновлении - /pisslog.'), color)
+        sampAddChatMessage((prefix..'Обновление завершено! Подробнее об обновлении - /rtimerlog.'), color)
         goupdatestatus = true
         thisScript():reload()
       end
