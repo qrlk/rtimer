@@ -2,10 +2,11 @@
 Скрипт добавляет таймер автоугона, таймер наркотиков и счётчик задротства с огромным количеством функций.  
 Предназначен для Samp-Rp, счётчик задротства работает везде.
 
-**Требования:** [CLEO 4.3](http://cleo.li/?lang=ru), [SAMPFUNCS 5.3.3](https://blast.hk/threads/17/), [MoonLoader](https://blast.hk/threads/13305/).  
+**Требования:** [CLEO 4+](http://cleo.li/?lang=ru), [SAMPFUNCS 5.3.3](https://blast.hk/threads/17/), [MoonLoader](https://blast.hk/threads/13305/).  
 **Активация:** Скрипт активируется автоматом, а настроить его можно в собственной менюшке (/weather или /wat). В скрипте реализовано автообновление (можно отключить в настройках).
 
-**Автор:** [rubbishman (James_Bond / Phil_Coulson)](http://rubbishman.ru/samp). Использован "submenus_show" FYP'a.  
+**Автор:** [qrlk (James_Bond / Phil_Coulson)](http://rubbishman.ru/samp).  
+**Обсуждение в группе VK:** [ссылка](https://vk.com/topic-168860334_38597261). 
 # Подробнее о каждом таймере
 * **Таймер угона (Samp-Rp).**
 
@@ -40,8 +41,8 @@
     * В настройках можно изменить текст TextDraw'a, его шрифт, размер и положение.
 
 # Скриншоты
-![https://i.imgur.com/qHx1xjQ.jpg?1](https://i.imgur.com/qHx1xjQ.jpg?1)  
-![https://i.imgur.com/FrEmoOg.jpg?1](https://i.imgur.com/FrEmoOg.jpg?1)  
+![https://i.imgur.com/JdqlCDo.png](https://i.imgur.com/JdqlCDo.png)  
+![https://i.imgur.com/4D2CU7T.png?1](https://i.imgur.com/4D2CU7T.png?1)  
 ![https://i.imgur.com/ZuS5q53.jpg?1](https://i.imgur.com/ZuS5q53.jpg?1)  
 ![https://i.imgur.com/74c0pNc.jpg?1](https://i.imgur.com/74c0pNc.jpg?1)  
 ![https://i.imgur.com/pDOTlk0.jpg?1](https://i.imgur.com/pDOTlk0.jpg?1)  
