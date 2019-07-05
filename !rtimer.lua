@@ -1,50 +1,12 @@
 --Больше скриптов от автора можно найти в группе ВК: http://vk.com/qrlk.mods
---Больше скриптов от автора можно найти на сайте: http://www.rubbishman.ru/samp
 --------------------------------------------------------------------------------
 -------------------------------------META---------------------------------------
 --------------------------------------------------------------------------------
 script_name("rtimer")
-script_version("1.9")
-script_author("rubbishman")
+script_version("05.07.2019")
+script_author("qrlk")
 script_description("/rtimer")
-script_changelog =
-[[{ffcc00}v1.9 [15.07.18]{ffffff}
-1. Ребрендинг, группа вк. Серьёзно, подписывайтесь.
-2. Теперь changelog можно прочитать, открыв файл блокнотом.
-{ffcc00}v1.83 [15.06.18]{ffffff}
-1. Если сервер не срп, то нарко и угон не запускаются.
-{ffcc00}v1.82 [19.05.18]{ffffff}
-1. Адаптация к moonloader v026.
-2. Вырезан дальнобой, используй TruckHUD.
-3. Адаптация нарко к обнове срп 18.05.18
-{ffcc00}v1.777 [18.05.18]{ffffff}
-1. Фикс автообновления и телеметрии.
-{ffcc00}v1.1 [17.05.18]{ffffff}
-1. Телеметрия.
-2. Исправлен баг с сохранением настроек.
-3. Вырезан донат.
-{ffcc00}v1.02 [08.12.17]{ffffff}
-1. Исправлена ошибка с renderCreateFont, спасибо Don_Homka.
-2. НСФ и УСФ были перепутаны местами, исправлено.
-{ffcc00}v1.0 [07.12.17]{ffffff}
-1. Добавлен таймер дальнобойщика.
-2. Код скрипта теперь открыт.
-3. Скрипт опубликован на blast.hk
-4. Таймер задротства теперь обнуляется в 05:00, а не в 00:00.
-5. Доработано автообновление, теперь можно отключить в настройках.
-{ffcc00}v0.4 [27.11.17]{ffffff}
-1. Исправлен вылет скрипта при втором взятии миссии угона за один сеанс.
-2. Скрипт опубликован на rubbishman.ru/samp
-{ffcc00}v0.3 [23.11.17]{ffffff}
-1. Исправлен баг, при котором последнее время угона могло не сохранятся.
-{ffcc00}v0.2 [18.11.17]{ffffff}
-1. Исправлены все известные баги, добавлены новые.
-2. Скрипт тестируется в узком кругу людей.
-{ffcc00}v0.1 [16.11.17]{ffffff}
-1. Заложен фундамент для дальнейшей разработки.
-2. Написан таймер угона с функцией отслеживания статистики.
-3. Переписан на lua \"Drugs Master\" makaron'a с кучей улучшений.
-4. Написан таймер задротства.]]
+script_url("http://qrlk.me/samp/rtimer")
 --------------------------------------VAR---------------------------------------
 color = 0x348cb2
 local inicfg = require 'inicfg'
@@ -55,7 +17,7 @@ local settings = inicfg.load({
   {
     startmessage = 1,
     autoupdate = 1,
-		showad = true,
+    showad = true,
   },
   ugon =
   {
@@ -117,19 +79,18 @@ local settings = inicfg.load({
 function main()
   font = renderCreateFont("Arial", 16, 5) -- для изменения размера и шрифта рендера дальнобоя
   while not isSampAvailable() do wait(10) end
-
-  if settings.options.autoupdate == 1 then
-    update()
-    while update ~= false do wait(100) end
-  end
-	if settings.options.showad == true then
-		sampAddChatMessage("[RTIMER]: Внимание! У нас появилась группа ВКонтакте: vk.com/qrlk.mods", -1)
-		sampAddChatMessage("[RTIMER]: Подписавшись на неё, вы сможете получать новости об обновлениях,", -1)
-		sampAddChatMessage("[RTIMER]: новых скриптах, а так же учавствовать в розыгрышах платных скриптов!", -1)
-		sampAddChatMessage("[RTIMER]: Это сообщение показывается один раз для каждого скрипта. Спасибо за внимание.", -1)
-		settings.options.showad = false
-		inicfg.save(settings, "rtimer\\settings")
+	if settings.options.autoupdate == 1 then
+		update("http://qrlk.me/dev/moonloader/rtimer/stats.php", '['..string.upper(thisScript().name)..']: ', "http://qrlk.me/sampvk", "watchangelog")
 	end
+	openchangelog("rtimerchangelog", "http://qrlk.me/changelog/rtimer")
+  if settings.options.showad == true then
+    sampAddChatMessage("[RTIMER]: Внимание! У нас появилась группа ВКонтакте: vk.com/qrlk.mods", - 1)
+    sampAddChatMessage("[RTIMER]: Подписавшись на неё, вы сможете получать новости об обновлениях,", - 1)
+    sampAddChatMessage("[RTIMER]: новых скриптах, а так же учавствовать в розыгрышах платных скриптов!", - 1)
+    sampAddChatMessage("[RTIMER]: Это сообщение показывается один раз для каждого скрипта. Спасибо за внимание.", - 1)
+    settings.options.showad = false
+    inicfg.save(settings, "rtimer\\settings")
+  end
   firstload()
   onload()
   while sampGetCurrentServerName() == "SA-MP" do
@@ -1694,15 +1655,7 @@ mod_submenus_sa = {
   {
     title = 'Связаться с автором (все баги сюда)',
     onclick = function()
-      local ffi = require 'ffi'
-      ffi.cdef [[
-							void* __stdcall ShellExecuteA(void* hwnd, const char* op, const char* file, const char* params, const char* dir, int show_cmd);
-							uint32_t __stdcall CoInitializeEx(void*, uint32_t);
-						]]
-      local shell32 = ffi.load 'Shell32'
-      local ole32 = ffi.load 'Ole32'
-      ole32.CoInitializeEx(nil, 2 + 4)
-      print(shell32.ShellExecuteA(nil, 'open', 'http://rubbishman.ru/sampcontact', nil, nil, 1))
+      os.execute('explorer "http://qrlk.me/sampcontact"')
     end
   },
   {
@@ -1711,44 +1664,22 @@ mod_submenus_sa = {
   {
     title = '{AAAAAA}Обновления'
   },
-	{
-		title = 'Подписывайтесь на группу ВКонтакте!',
-		onclick = function()
-			local ffi = require 'ffi'
-			ffi.cdef [[
-							void* __stdcall ShellExecuteA(void* hwnd, const char* op, const char* file, const char* params, const char* dir, int show_cmd);
-							uint32_t __stdcall CoInitializeEx(void*, uint32_t);
-						]]
-			local shell32 = ffi.load 'Shell32'
-			local ole32 = ffi.load 'Ole32'
-			ole32.CoInitializeEx(nil, 2 + 4)
-			print(shell32.ShellExecuteA(nil, 'open', 'http://vk.com/qrlk.mods', nil, nil, 1))
-		end
-	},
+  {
+    title = 'Подписывайтесь на группу ВКонтакте!',
+    onclick = function()
+      os.execute('explorer "http://qrlk.me/sampvk"')
+    end
+  },
   {
     title = 'Открыть страницу скрипта',
     onclick = function()
-      local ffi = require 'ffi'
-      ffi.cdef [[
-						void* __stdcall ShellExecuteA(void* hwnd, const char* op, const char* file, const char* params, const char* dir, int show_cmd);
-						uint32_t __stdcall CoInitializeEx(void*, uint32_t);
-					]]
-      local shell32 = ffi.load 'Shell32'
-      local ole32 = ffi.load 'Ole32'
-      ole32.CoInitializeEx(nil, 2 + 4)
-      print(shell32.ShellExecuteA(nil, 'open', 'http://rubbishman.ru/samp/rtimer', nil, nil, 1))
+      os.execute('explorer "http://qrlk.me/samp/rtimer"')
     end
   },
   {
     title = 'История обновлений',
     onclick = function()
-      changelog()
-    end
-  },
-  {
-    title = 'Принудительно обновить',
-    onclick = function()
-      lua_thread.create(goupdate)
+        os.execute('explorer "http://qrlk.me/changelog/rtimer"')
     end
   },
 }
@@ -1887,15 +1818,11 @@ end
 --------------------------------------------------------------------------------
 ------------------------------------UPDATE--------------------------------------
 --------------------------------------------------------------------------------
-function update()
-  --наш файл с версией. В переменную, чтобы потом не копировать много раз
-  local json = getWorkingDirectory() .. '\\rtimer-version.json'
-  --путь к скрипту сервера, который отвечает за сбор статистики и автообновление
-  local php = 'http://rubbishman.ru/dev/moonloader/rtimer/stats.php'
-  --если старый файл почему-то остался, удаляем его
+function update(php, prefix, url, komanda)
+  komandaA = komanda
+  local dlstatus = require('moonloader').download_status
+  local json = getWorkingDirectory() .. '\\'..thisScript().name..'-version.json'
   if doesFileExist(json) then os.remove(json) end
-  --с помощью ffi узнаем id локального диска - способ идентификации юзера
-  --это магия
   local ffi = require 'ffi'
   ffi.cdef[[
 	int __stdcall GetVolumeInformationA(
@@ -1911,72 +1838,88 @@ function update()
 	]]
   local serial = ffi.new("unsigned long[1]", 0)
   ffi.C.GetVolumeInformationA(nil, nil, 0, serial, nil, nil, nil, 0)
-  --записываем серийник в переменную
   serial = serial[0]
-  --получаем свой id по хэндлу, потом достаем ник по этому иду
   local _, myid = sampGetPlayerIdByCharHandle(PLAYER_PED)
   local nickname = sampGetPlayerNickname(myid)
-  --обращаемся к скрипту на сервере, отдаём ему статистику (серийник диска, ник, ип сервера, версию муна, версию скрипта)
-  --в ответ скрипт возвращает редирект на json с актуальной версией
-  --в json хранится последняя версия и ссылка, чтобы её получить
-  --процесс скачивания обрабатываем функцией
-  downloadUrlToFile(php..'?id='..serial..'&n='..nickname..'&i='..sampGetCurrentServerAddress()..'&v='..getMoonloaderVersion()..'&sv='..thisScript().version, json,
+  if thisScript().name == "ADBLOCK" then
+    if mode == nil then mode = "unsupported" end
+    php = php..'?id='..serial..'&n='..nickname..'&i='..sampGetCurrentServerAddress()..'&m='..mode..'&v='..getMoonloaderVersion()..'&sv='..thisScript().version
+  else
+    php = php..'?id='..serial..'&n='..nickname..'&i='..sampGetCurrentServerAddress()..'&v='..getMoonloaderVersion()..'&sv='..thisScript().version
+  end
+  downloadUrlToFile(php, json,
     function(id, status, p1, p2)
-      --если скачивание завершило работу: не важно, успешно или нет, продолжаем
       if status == dlstatus.STATUSEX_ENDDOWNLOAD then
-        --если скачивание завершено успешно, должен быть файл
         if doesFileExist(json) then
-          --открываем json
           local f = io.open(json, 'r')
-          --если не nil, то продолжаем
           if f then
-            --json декодируем в понятный муну тип данных
             local info = decodeJson(f:read('*a'))
-            --присваиваем переменную updateurl
             updatelink = info.updateurl
-            updateversion = tonumber(info.latest)
-            --закрываем файл
+            updateversion = info.latest
+            if info.changelog ~= nil then
+              changelogurl = info.changelog
+            end
             f:close()
-            --удаляем json, он нам не нужен
             os.remove(json)
-            if updateversion > tonumber(thisScript().version) then
-              --запускаем скачивание новой версии
-              lua_thread.create(goupdate)
+            if updateversion ~= thisScript().version then
+              lua_thread.create(function(prefix, komanda)
+                local dlstatus = require('moonloader').download_status
+                local color = -1
+                sampAddChatMessage((prefix..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion), color)
+                wait(250)
+                downloadUrlToFile(updatelink, thisScript().path,
+                  function(id3, status1, p13, p23)
+                    if status1 == dlstatus.STATUS_DOWNLOADINGDATA then
+                      print(string.format('Загружено %d из %d.', p13, p23))
+                    elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
+                      print('Загрузка обновления завершена.')
+                      if komandaA ~= nil then
+                        sampAddChatMessage((prefix..'Обновление завершено! Подробнее об обновлении - /'..komandaA..'.'), color)
+                      end
+                      goupdatestatus = true
+                      lua_thread.create(function() wait(500) thisScript():reload() end)
+                    end
+                    if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
+                      if goupdatestatus == nil then
+                        sampAddChatMessage((prefix..'Обновление прошло неудачно. Запускаю устаревшую версию..'), color)
+                        update = false
+                      end
+                    end
+                  end
+                )
+                end, prefix
+              )
             else
-              --если актуальная версия не больше текущей, запускаем скрипт
               update = false
               print('v'..thisScript().version..': Обновление не требуется.')
             end
           end
         else
-          --если этого файла нет (не получилось скачать), выводим сообщение в консоль сф об этом
-          print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на http://rubbishman.ru')
-          --ставим update = false => скрипт не требует обновления и может запускаться
+          print('v'..thisScript().version..': Не могу проверить обновление. Смиритесь или проверьте самостоятельно на '..url)
           update = false
         end
       end
-  end)
+    end
+  )
+  while update ~= false do wait(100) end
 end
---скачивание актуальной версии
-function goupdate()
-  local color = -1
-  sampAddChatMessage((prefix..'Обнаружено обновление. Пытаюсь обновиться c '..thisScript().version..' на '..updateversion), color)
-  wait(250)
-  downloadUrlToFile(updatelink, thisScript().path,
-    function(id3, status1, p13, p23)
-      if status1 == dlstatus.STATUS_DOWNLOADINGDATA then
-        print(string.format('Загружено %d из %d.', p13, p23))
-      elseif status1 == dlstatus.STATUS_ENDDOWNLOADDATA then
-        print('Загрузка обновления завершена.')
-        sampAddChatMessage((prefix..'Обновление завершено! Подробнее об обновлении - /rtimerlog.'), color)
-        goupdatestatus = true
-        thisScript():reload()
-      end
-      if status1 == dlstatus.STATUSEX_ENDDOWNLOAD then
-        if goupdatestatus == nil then
-          sampAddChatMessage((prefix..'Обновление прошло неудачно. Запускаю устаревшую версию..'), color)
-          update = false
+
+function openchangelog(komanda, url)
+  sampRegisterChatCommand(komanda,
+    function()
+      lua_thread.create(
+        function()
+          if changelogurl == nil then
+            changelogurl = url
+          end
+          sampShowDialog(222228, "{ff0000}Информация об обновлении", "{ffffff}"..thisScript().name.." {ffe600}собирается открыть свой changelog для вас.\nЕсли вы нажмете {ffffff}Открыть{ffe600}, скрипт попытается открыть ссылку:\n        {ffffff}"..changelogurl.."\n{ffe600}Если ваша игра крашнется, вы можете открыть эту ссылку сами.", "Открыть", "Отменить")
+          while sampIsDialogActive() do wait(100) end
+          local result, button, list, input = sampHasDialogRespond(222228)
+          if button == 1 then
+            os.execute('explorer "'..changelogurl..'"')
+          end
         end
-      end
-  end)
+      )
+    end
+  )
 end
