@@ -3,7 +3,7 @@
 -------------------------------------META---------------------------------------
 --------------------------------------------------------------------------------
 script_name("rtimer")
-script_version("05.07.2019")
+script_version("05.07.2019-1")
 script_author("qrlk")
 script_description("/rtimer")
 script_url("http://qrlk.me/samp/rtimer")
@@ -80,7 +80,7 @@ function main()
   font = renderCreateFont("Arial", 16, 5) -- для изменения размера и шрифта рендера дальнобоя
   while not isSampAvailable() do wait(10) end
 	if settings.options.autoupdate == 1 then
-		update("http://qrlk.me/dev/moonloader/rtimer/stats.php", '['..string.upper(thisScript().name)..']: ', "http://qrlk.me/sampvk", "watchangelog")
+		update("http://qrlk.me/dev/moonloader/rtimer/stats.php", '['..string.upper(thisScript().name)..']: ', "http://qrlk.me/sampvk", "rtimerchangelog")
 	end
 	openchangelog("rtimerchangelog", "http://qrlk.me/changelog/rtimer")
   if settings.options.showad == true then
