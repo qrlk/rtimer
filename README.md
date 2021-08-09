@@ -23,7 +23,9 @@ It also requires **[CLEO 4+](http://cleo.li/?lang=ru)** and **[SAMPFUNCS 5+](htt
 ---
 
 **The following description is in Russian, because it is the main language of the user base**.
-
+<details>
+  <summary>Описание на русском языке.</summary>
+   
 # Описание 
 Скрипт добавляет таймер автоугона, таймер наркотиков и счётчик задротства с огромным количеством функций.  
 Предназначен для Samp-Rp, счётчик задротства работает везде.
@@ -74,4 +76,4 @@ It also requires **[CLEO 4+](http://cleo.li/?lang=ru)** and **[SAMPFUNCS 5+](htt
 ![https://i.imgur.com/pDOTlk0.jpg?1](https://i.imgur.com/pDOTlk0.jpg?1)  
 ![https://i.imgur.com/9VL9CJf.jpg?1](https://i.imgur.com/9VL9CJf.jpg?1)  
 
-
+</details>
