@@ -6,7 +6,7 @@ script_name("rtimer")
 script_version("05.07.2019-1")
 script_author("qrlk")
 script_description("/rtimer")
-script_url("http://qrlk.me/samp/rtimer")
+script_url("https://github.com/qrlk/rtimer")
 --------------------------------------VAR---------------------------------------
 color = 0x348cb2
 local inicfg = require 'inicfg'
