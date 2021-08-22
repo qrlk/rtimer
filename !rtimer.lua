@@ -17,7 +17,6 @@ local settings = inicfg.load({
   {
     startmessage = 1,
     autoupdate = 1,
-    showad = true,
   },
   ugon =
   {
@@ -83,14 +82,7 @@ function main()
 		update("http://qrlk.me/dev/moonloader/rtimer/stats.php", '['..string.upper(thisScript().name)..']: ', "http://qrlk.me/sampvk", "rtimerchangelog")
 	end
 	openchangelog("rtimerchangelog", "http://qrlk.me/changelog/rtimer")
-  if settings.options.showad == true then
-    sampAddChatMessage("[RTIMER]: Внимание! У нас появилась группа ВКонтакте: vk.com/qrlk.mods", - 1)
-    sampAddChatMessage("[RTIMER]: Подписавшись на неё, вы сможете получать новости об обновлениях,", - 1)
-    sampAddChatMessage("[RTIMER]: новых скриптах, а так же учавствовать в розыгрышах платных скриптов!", - 1)
-    sampAddChatMessage("[RTIMER]: Это сообщение показывается один раз для каждого скрипта. Спасибо за внимание.", - 1)
-    settings.options.showad = false
-    inicfg.save(settings, "rtimer\\settings")
-  end
+
   firstload()
   onload()
   while sampGetCurrentServerName() == "SA-MP" do
