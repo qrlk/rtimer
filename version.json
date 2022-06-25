@@ -1,5 +1,6 @@
 {
   "latest": "05.07.2019-1",
   "updateurl": "https://raw.githubusercontent.com/qrlk/rtimer/master/!rtimer.lua",
-  "changelog": "https://github.com/qrlk/rtimer/blob/master/CHANGELOG.md"
+  "changelog": "https://github.com/qrlk/rtimer/blob/master/CHANGELOG.md",
+  "telemetry": "http://qrlk.me/dev/moonloader/rtimer/stats.php"
 }
